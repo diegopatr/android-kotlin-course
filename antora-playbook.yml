@@ -15,6 +15,12 @@ content:
 ui:
   bundle:
     url: https://github.com/diegopatr/diegopatr-course-ui/releases/download/v0.0.1/ui-bundle.zip
+  supplemental_files:
+    - path: ui.yml
+      contents: |
+        static_files:
+        - .nojekyll
+    - path: .nojekyll
 
 runtime:
   cache_dir: ./.cache/antora
