@@ -1,0 +1,302 @@
+= Introdução à Desenvolvimento de Aplicativos Móveis com Kotlin e Android
+
+Nesta aula, será apresentado os conceitos básicos de desenvolvimento de aplicativos móveis com Kotlin e configuraremos o ambiente de desenvolvimento para trabalhar com Android Studio. Será feita uma introdução à linguagem Kotlin, suas principais características e vantagens no uso em Android.
+
+== História da Linguagem Kotlin
+
+Kotlin é uma linguagem de programação criada pela JetBrains em 2011. O objetivo principal da criação do Kotlin foi criar uma linguagem que fosse mais segura, concisa e fácil de usar do que as linguagens existentes. Em 2017, a Google anunciou oficialmente o suporte ao Kotlin como primeira linguagem oficial para desenvolvimento de aplicativos Android.
+
+== Principais Características da Linguagem de Programação Kotlin
+
+Kotlin é uma linguagem orientada a objetos que oferece várias características inovadoras e interessantes, tais como:
+
+*Tipagem estática:* Kotlin é uma linguagem com tipagem estática, o que significa que os tipos dos variáveis devem ser declarados antes de uso.
+
+*Funções:* Kotlin permite a definição de funções como primeira classe, ou seja, funções podem ser passadas como argumentos para outras funções e retornadas por outras funções.
+
+*Classes e Objetos:* Kotlin suporta as principais características da programação orientada a objetos, incluindo classes, objetos, herança e polimorfismo.
+
+*Inferência de Tipagem:* A linguagem Kotlin utiliza o tipo inferido, que significa que você não precisa declarar os tipos das variáveis.
+
+== Características e Vantagens do Uso de Kotlin em Android
+
+Algumas das principais vantagens do uso de Kotlin em Android incluem:
+
+*Menor complexidade:* O código escrito com Kotlin é mais conciso e fácil de entender.
+Maior segurança: A linguagem Kotlin oferece um conjunto de recursos de segurança que reduzem a probabilidade de erros comuns.
+
+*Suporte à tipagem estática:* A tipagem estática é uma característica chave do Kotlin, o que significa que os tipos dos variáveis devem ser declarados antes de uso.
+
+== Preparação do Ambiente de Desenvolvimento Kotlin
+
+A linguagem Kotlin é suportada pelo IntelliJ IDEA e Android Studio. Inicialmente, vamos aprender a utilizar o IntelliJ IDEA para criar um projeto simples que utiliza Kotlin como linguagem de programação.
+
+=== Configuração do IntelliJ IDEA para Desenvolvimento com Kotlin
+
+Para criar um projeto simples utilizando Kotlin no IntelliJ IDEA, siga os passos abaixo:
+
+. Baixe e instale a versão mais recente do IntelliJ IDEA.
+
+. Abra o IntelliJ IDEA e selecione `File | New | Project`.
+
+. Na lista à esquerda, selecione `Kotlin`.
+
+. Informe o nome do novo projeto e altere sua localização, se necessário.
+
+. Selecione a opção `Create Git repository` para criar um repositório Git para o projeto, caso deseje.
+
+. Escolha o sistema de build `IntelliJ`.
+Esse sistema é nativo e não requer downloads adicionais.
+
+. No campo `JDK`, selecione o JDK instalado no seu computador ou utilize a opção `Add JDK` para especificar o caminho do diretório do JDK instalado.
+Caso não possua um JDK instalado, selecione `Download JDK` para realizar o download.
+
+. Ative a opção `Add sample code` para criar um arquivo com o código exemplo "Hello World!".
++
+image::01-new-project.png[]
+
+. Clique em `Create` para finalizar a criação do projeto.
+
+Para executar o projeto:
+
+. Abra o arquivo `Main.kt` localizado em `src/main/kotlin`.
+
+. Para executar o código, clique no ícone verde de `Run` na lateral do código.
+
+. Selecione a opção `Run 'MainKt'` para executar o código.
++
+image::02-run-project.png[]
+
+. O resultado da execução será exibido na janela de execução.
++
+image::03-run-output.png[]
+
+. Modifique o código de exemplo para este, que solicita o nome do usuário e o cumprimenta:
++
+[source,kotlin]
+----
+fun main() {
+    println("Qual é o seu nome?")
+    val nome = readln()
+    println("Olá, $nome!")
+}
+----
+
+. Clique no ícone verde de `Run` na lateral para executar a aplicação.
+
+. Insira o seu nome no console e veja o resultado na janela de execução.
+
+image::04-hello-student.gif[]
+
+Pronto!
+Você executou com sucesso sua primeira aplicação Kotlin utilizando o IntelliJ IDEA.
+
+== Preparação do Ambiente de Desenvolvimento Android
+A linguagem Kotlin é uma escolha popular para o desenvolvimento de aplicativos móveis no Android Studio. Vamos aprender a configurar o ambiente e criar um projeto inicial simples que utiliza Kotlin.
+
+=== Configuração do Android Studio para Desenvolvimento com Kotlin
+Para criar um projeto simples utilizando Kotlin no Android Studio, siga os passos abaixo:
+
+. Baixe e instale a versão mais recente do **Android Studio** no site oficial do [https://developer.android.com/studio Android Developers].
+
+. Abra o Android Studio e selecione `File | New | New Project`.
+
+. Na janela `Create New Project`, escolha a opção `Empty Activity` para criar um projeto Android simples.
++
+image::05-select-template.png[]
+
+. Clique em `Next`.
+
+. Preencha as informações do projeto:
+a. Informe o nome do aplicativo no campo `Name` (exemplo: `HelloApp`).
+b. Escolha o nome do pacote em `Package name`, ajustando conforme necessário.
+c. Defina o diretório de localização do projeto no campo `Save location`.
+
+. Escolha o **nível mínimo de API (Min SDK)** compatível com o dispositivo-alvo. Exemplo: API 24.
+
+. Selecione a linguagem de configuração do projeto no campo `Build configuration language`. Recomenda-se manter a opção `Kotlin DSL`.
++
+image::06-new-project-android.png[]
+
+. Clique em `Finish` para criar o projeto.
+
+=== Estrutura do Projeto
+Após o Android Studio finalizar a criação do projeto, observe a estrutura básica (alguns arquivos foram omitidos para simplificar a listagem):
+
+[listing]
+----
+📒 HelloApp <1>
+  📄 build.gradle.kts <2>
+  📄 gradle.properties
+  📄 settings.gradle.kts
+  📄 local.properties
+  📄 gradlew
+  📄 gradlew.bat
+  📂 gradle
+  📂 app <3>
+    📄 build.gradle.kts
+    📄 proguard-rules.pro
+    📂 src <4>
+      📂 androidTest <9>
+      📂 main <5>
+        📄 AndroidManifest.xml
+        📂 java <6>
+          📂 com.example.helloapp
+            📄 MainActivity.kt <10>
+        📂 res <7>
+      📂 test <8>
+        📂 java
+----
+
+<.> Diretório raiz do projeto.
+<.> Arquivo de configuração do projeto.
+<.> Diretório `app`: contém arquivos do aplicativo.
+<.> Diretório `app/src`: contém arquivos de código e recursos do aplicativo.
+<.> Diretório `app/src/main`: contém arquivos do aplicativo.
+<.> Diretório `app/src/main/java`: contém arquivos de código Kotlin.
+<.> Diretório `app/src/main/res`: contém arquivos de recursos de layout, como XMLs, imagens e valores.
+<.> Diretório `app/src/test`: contém arquivos de teste do aplicativo.
+<.> Diretório `app/src/androidTest`: contém arquivos de teste de instrumentação.
+<.> Arquivo `MainActivity.kt`: classe principal do aplicativo.
+
+=== Executando o Projeto
+Para executar o projeto inicial:
+
+. Conecte um dispositivo físico Android ao computador ou configure um **Emulador Android** pelo botão `Device Manager` na barra de ferramentas.
+
+. Clique no ícone verde `Run` ou pressione `Shift + F10` para compilar e executar o projeto.
+
+. O aplicativo padrão exibirá uma mensagem "Hello World" na tela inicial.
++
+image::07-run-android-project.png[]
+
+=== Modificando o Código de Exemplo
+Personalize a mensagem de `Hello Android!` para algo diferente:
+
+. Abra o arquivo `MainActivity.kt` localizado no diretório `app/src/main/java/com/example/helloapp`.
+
+. Atualize a função `onCreate` da classe `MainActivity` para modificar a mensagem exibida:
++
+[source, kotlin]
+----
+package com.example.helloapp
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
+import com.example.helloapp.ui.theme.HelloAppTheme
+
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        setContent {
+            HelloAppTheme {
+                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                    Greeting(
+                        name = "Android Mobile Development",
+                        modifier = Modifier.padding(innerPadding)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun Greeting(name: String, modifier: Modifier = Modifier) {
+    Text(
+        text = "Hello $name!",
+        modifier = modifier
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+fun GreetingPreview() {
+    HelloAppTheme {
+        Greeting("Android")
+    }
+}
+----
+> Observe que `setContent` é usada para exibir o conteúdo, típico de projetos usando **Jetpack Compose**.
+
+. Rode novamente o projeto utilizando o botão verde `Run` na barra de ferramentas ou utilize o atalho `Shift + F10`.
+
+. Aguarde o processo de build e observe o aplicativo rodando no emulador/dispositivo.
++
+image::10-app-output-jetpack-compose.png[]
+
+=== Incrementando o Projeto
+
+Caso deseje manter um layout XML ao invés do Jetpack Compose, o projeto também suportará layouts tradicionais. Alterne para o XML alterando o método `onCreate`:
+
+. Abra o arquivo `MainActivity.kt` localizado no diretório `app/src/main/java/com/example/helloapp`. Modifique o método `onCreate` para utilizar um layout XML:
++
+[source, kotlin]
+----
+package com.example.helloapp
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.enableEdgeToEdge
+
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        setContentView(R.layout.activity_main)
+    }
+}
+----
+> Observe que `setContentView` é usada para exibir o conteúdo utilizando um layout XML.
+
+. Crie um arquivo `activity_main.xml` em `res/layout` com um `TextView` básico para exibir uma mensagem personalizada. Você pode utilizar a ação `Alt + Enter` para criar o arquivo XML automaticamente.
++
+image::08-new-resource.png[]
+
+. Preencha os atributos do novo recurso XML na janela de criação.
++
+image::09-new-resource-options.png[]
+
+. Abra o arquivo XML criado. Caso não seja exibido o conteúdo, alterne o modo de visualização para `Code` utilizando o botão image:text-button.png[] no canto superior direito.
+
+. Modifique o conteúdo do arquivo XML para exibir uma mensagem personalizada:
++
+[source, xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="16dp"
+        android:fontFamily="sans-serif"
+        android:text="Hello Android Mobile Development!"
+        android:textColor="#000000"
+        android:textSize="16sp" />
+
+</LinearLayout>
+----
+
+. Aguarde o processo de build e observe o aplicativo rodando no emulador/dispositivo.
++
+image::11-app-output-xml-layout.png[]
+
+=== Conclusão
+
+Agora, você aprendeu como criar um projeto simples no Android Studio utilizando a API 24 e `ComponentActivity` como a classe base, tanto com **Jetpack Compose**, quanto com **layouts XML**.

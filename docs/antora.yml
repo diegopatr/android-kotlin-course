@@ -1,0 +1,5 @@
+name: android-kotlin-course
+title: Dev Mobile Android & Kotlin
+version: ~
+nav:
+  - modules/ROOT/nav.adoc
