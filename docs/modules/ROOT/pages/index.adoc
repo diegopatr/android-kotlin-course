@@ -1,1 +1,14 @@
-= Desenvolvimento Mobile Android Utilizando Kotlin
+= Bem-vindo ao Curso de Desenvolvimento Mobile Android Utilizando Kotlin!
+
+Seja bem-vindo ao curso de **Desenvolvimento Mobile Android Utilizando Kotlin**! Este curso foi projetado para ajudá-lo(a) a dominar os fundamentos do desenvolvimento de aplicativos Android usando a poderosa linguagem **Kotlin**. 
+
+Neste curso, você aprenderá a criar aplicativos Android do zero, usando as melhores práticas de desenvolvimento de software e as ferramentas mais modernas disponíveis no mercado.
+
+Este curso é dividido em aulas, cada uma focada em um tópico específico. Ao final de cada aula, você terá a oportunidade de praticar o que aprendeu por meio de exercícios práticos.
+
+Estamos muito felizes em tê-lo(a) conosco e esperamos que você aproveite ao máximo este curso!
+
+Comece agora mesmo acessando a xref:01-intro-dev-android-kotlin.adoc[primeira aula]!
+
+Bons estudos!
+

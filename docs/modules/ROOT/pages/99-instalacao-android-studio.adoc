@@ -1,0 +1,42 @@
+= Instalação do Android Studio
+
+. Baixe o JetBrains Toolbox no site oficial https://www.jetbrains.com/toolbox-app[JetBrains Toolbox App,window=_blank].
+. Execute o instalador do JetBrains Toolbox e siga as instruções para concluir a instalação.
+. Abra o JetBrains Toolbox após a instalação.
+. Faça login na sua conta da JetBrains ou crie uma nova conta.
+. Localize o Android Studio no painel do JetBrains Toolbox.
+. Clique no botão Install para instalar o Android Studio.
+. Aguarde o download e a instalação serem concluídos.
+. Clique no botão Open no JetBrains Toolbox para abrir o Android Studio.
+. Configure o Android Studio seguindo o assistente de configuração inicial.
+. Verifique se há atualizações de componentes ou plugins disponíveis, se necessário.
+
+== Configuração do Android Studio para Desenvolvimento
+
+1. Após instalar o Android Studio, abra o programa.
+2. Siga o assistente de configuração inicial:
+* Escolha o tema de sua preferência (Claro ou Escuro).
+* Configure os atalhos ou utilize as configurações padrão.
+3. Na etapa de "Instalação de Componentes", verifique se os seguintes itens estão marcados para download e instalação:
+* Android SDK
+* Android SDK Platform-Tools
+* Android SDK Build-Tools
+* Emulador Android
+* Imagem do sistema (System Image) para o emulador (recomendado: versão mais recente do Android com suporte).
+4. Aguarde o término do download e instalação dos componentes necessários.
+5. Após finalizar o assistente, vá até `File > Settings > Appearance & Behavior > System Settings > Android SDK` e confirme que os seguintes itens foram instalados:
+* No painel da aba `SDK Platforms`, selecione pelo menos uma versão mais recente do Android (recomendado: marque a opção "Show Package Details" para instalar pacotes adicionais, como fontes e ferramentas opcionais, para maior compatibilidade).
+* Na aba `SDK Tools`, garanta que as versões mais recentes do SDK Build-Tools, Platform-Tools, e Emulator estão instaladas.
+6. Configure um Dispositivo Virtual (AVD - Android Virtual Device):
+* Vá até `Tools > Device Manager` e clique no botão "Create Device".
+* Escolha um modelo de dispositivo (ex.: Pixel 5).
+* Selecione a imagem do sistema recomendada ou a versão que você deseja testar.
+* Finalize a configuração e execute o emulador para testar se está funcionando corretamente.
+7. Teste sua configuração criando um novo projeto:
+* Clique em `New Project`.
+* Escolha o modelo de aplicativo desejado (ex.: Empty Activity).
+* Defina os parâmetros do projeto (nome, local de armazenamento e linguagem de programação - Kotlin ou Java).
+* Clique em Finish e aguarde o ambiente ser carregado.
+8. Execute o projeto no emulador ou conecte um dispositivo físico ao computador:
+* Para usar um dispositivo físico, habilite a depuração USB no smartphone e conecte-o ao computador.
+Certifique-se de que os drivers necessários estão instalados, se estiver no Windows.

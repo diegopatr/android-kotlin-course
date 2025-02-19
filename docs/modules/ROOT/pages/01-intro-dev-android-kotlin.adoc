@@ -1,4 +1,4 @@
-= Introdução à Desenvolvimento de Aplicativos Móveis com Kotlin e Android
+= Introdução ao Desenvolvimento de Aplicativos Móveis com Kotlin e Android
 
 Nesta aula, será apresentado os conceitos básicos de desenvolvimento de aplicativos móveis com Kotlin e configuraremos o ambiente de desenvolvimento para trabalhar com Android Studio. Será feita uma introdução à linguagem Kotlin, suas principais características e vantagens no uso em Android.
 
