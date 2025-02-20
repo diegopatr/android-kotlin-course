@@ -13,30 +13,73 @@
 
 == Configuração do Android Studio para Desenvolvimento
 
-1. Após instalar o Android Studio, abra o programa.
-2. Siga o assistente de configuração inicial:
-* Escolha o tema de sua preferência (Claro ou Escuro).
-* Configure os atalhos ou utilize as configurações padrão.
-3. Na etapa de "Instalação de Componentes", verifique se os seguintes itens estão marcados para download e instalação:
+. Após instalar o Android Studio, abra o programa.
+. Siga o assistente de configuração inicial:
+. Escolha o tema de sua preferência (Claro ou Escuro).
+. Configure os atalhos ou utilize as configurações padrão.
+. Na etapa de "Instalação de Componentes", verifique se os seguintes itens estão marcados para download e instalação:
 * Android SDK
 * Android SDK Platform-Tools
 * Android SDK Build-Tools
 * Emulador Android
 * Imagem do sistema (System Image) para o emulador (recomendado: versão mais recente do Android com suporte).
-4. Aguarde o término do download e instalação dos componentes necessários.
-5. Após finalizar o assistente, vá até `File > Settings > Appearance & Behavior > System Settings > Android SDK` e confirme que os seguintes itens foram instalados:
+. Aguarde o término do download e instalação dos componentes necessários.
+
+=== Configuração do Android SDK
+
+. Após a instalação do Android Studio, abra o programa.
+. Acesse as configurações do Android Studio utilizando umas das opções abaixo:
+
+.. Na tela inicial, clique em `Customize` e em seguida em `All Settings`.
++
+image::12-initial-screen-android-studio.png[]
+
+.. No menu principal, clique em `File > Settings`.
+
+. Navegue para a seção `Languages & Frameworks > Android SDK`.
++
+image::13-settings-android-sdk.png[]
+
+. No painel da aba `SDK Platforms`, você pode:
+* Verificar e selecionar as versões do Android disponíveis para download.
+* Marcar a opção "Show Package Details" para visualizar e instalar pacotes adicionais, como fontes e ferramentas opcionais.
+. Na aba `SDK Tools`, você pode:
+* Verificar e garantir que as versões mais recentes das ferramentas do SDK (como Build-Tools, Platform-Tools e Emulator) estão instaladas.
+. Clique em `Apply` para confirmar quaisquer alterações realizadas, e em seguida em `OK` para fechar a janela de configurações.
+
 * No painel da aba `SDK Platforms`, selecione pelo menos uma versão mais recente do Android (recomendado: marque a opção "Show Package Details" para instalar pacotes adicionais, como fontes e ferramentas opcionais, para maior compatibilidade).
 * Na aba `SDK Tools`, garanta que as versões mais recentes do SDK Build-Tools, Platform-Tools, e Emulator estão instaladas.
-6. Configure um Dispositivo Virtual (AVD - Android Virtual Device):
-* Vá até `Tools > Device Manager` e clique no botão "Create Device".
-* Escolha um modelo de dispositivo (ex.: Pixel 5).
-* Selecione a imagem do sistema recomendada ou a versão que você deseja testar.
-* Finalize a configuração e execute o emulador para testar se está funcionando corretamente.
-7. Teste sua configuração criando um novo projeto:
-* Clique em `New Project`.
-* Escolha o modelo de aplicativo desejado (ex.: Empty Activity).
-* Defina os parâmetros do projeto (nome, local de armazenamento e linguagem de programação - Kotlin ou Java).
-* Clique em Finish e aguarde o ambiente ser carregado.
-8. Execute o projeto no emulador ou conecte um dispositivo físico ao computador:
-* Para usar um dispositivo físico, habilite a depuração USB no smartphone e conecte-o ao computador.
-Certifique-se de que os drivers necessários estão instalados, se estiver no Windows.
+
+=== Configuração do Emulador Android
+
+. Após a instalação do Android Studio, abra o programa.
+. Acesse o gerenciador de dispositivos do Android Studio utilizando umas das opções abaixo:
+
+.. Na tela inicial, clique em `More Actions` e em seguida em `Virtual Device Manager`.
++
+image::14-more-actions.png[]
+
+.. No menu principal, clique em `Tools > Device Manager`.
+
+. Na janela do Gerenciador de Dispositivos Virtuais, clique no botão `Create Virtual Device`.
++
+image::15-virtual-device-manager.png[]
+
+. Escolha um modelo de dispositivo (ex.: categoria `Phone` e nome `Medium Phone`) e clique em `Next`.
++
+image::16-select-hardware.png[]
+
+. Selecione a imagem do sistema recomendada ou a versão que você deseja testar e clique em `Next`.
++
+image::17-select-system-image.png[]
++
+NOTE: Observe que algumas imagens podem exigir a instalação de pacotes adicionais. Observe também que é apresentado a versão do Android e a arquitetura do sistema (x86 ou ARM) para cada imagem.
+
+. Verifique a configuração do dispositivo virtual Android e confirme clicando em `Finish`.
++
+image::18-verify-configuration.png[]
+
+. Teste sua configuração criando um novo projeto.
+
+TIP: Caso tenha alguma dificuldade não deixe de conferir a documentação oficial do Android Studio em https://developer.android.com/studio[developer.android.com/studio,window=_blank].
+
