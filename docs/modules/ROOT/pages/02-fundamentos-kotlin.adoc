@@ -1,0 +1,306 @@
+= Princípios Básicos da Linguagem Kotlin
+
+Kotlin é uma linguagem moderna, concisa, e poderosa, projetada para interoperabilidade total com Java.
+Seus princípios básicos promovem produtividade e minimizam chances de erros.
+Abaixo estão os conceitos fundamentais da linguagem:
+
+== Conceitos Básicos
+
+Um programa Kotlin poderá ser formado por funções, classes, variáveis, e expressões.
+
+Abaixo está um exemplo simples de um programa Kotlin que imprime "Olá, Mundo!":
+
+[source, kotlin]
+----
+package com.example.helloapp
+fun main() { // <1>
+    println("Olá, Mundo!") // <2>
+}
+----
+<.> Ponto de Entrada: Função `main` é o ponto de entrada de um programa Kotlin.
+<.> Função `println`: Imprime uma mensagem na saída padrão.
+
+== 3. Funções
+
+Em Kotlin, funções podem ter parâmetros com valores padrão e suportam a passagem de argumentos nomeados.
+
+Exemplo básico de funções:
+
+[source,kotlin]
+----
+fun printMessage(message: String): Unit {                               // <1>
+    println(message)
+}
+
+fun printMessageWithPrefix(message: String, prefix: String = "Info") {  // <2>
+    println("[$prefix] $message")                                         
+}
+
+fun sum(x: Int, y: Int): Int {                                          // <3>
+    return x + y
+}
+
+fun multiply(x: Int, y: Int) = x * y                                    // 4
+
+fun main() {
+    printMessage("Hello")                                               // 5                    
+    printMessageWithPrefix("Hello", "Log")                              // 6
+    printMessageWithPrefix("Hello")                                     // 7
+    printMessageWithPrefix(prefix = "Log", message = "Hello")           // 8
+    println(sum(1, 2))                                                  // 9
+    println(multiply(2, 4))                                             // 10
+}
+----
+
+Destaques:
+
+<1> Função que aceita um parâmetro do tipo `String` e não retorna valor (`Unit`).
+<2> Função com segundo parâmetro opcional, que possui valor padrão `"Info"`.
+<3> Função que retorna valor inteiro.
+<4> Função de expressão única onde o tipo de retorno é inferido automaticamente.
+<5> Exemplos de chamadas, demonstrando como usar argumentos posicionais, com valores padrão, ou argumentos nomeados.
+- **9-10:** Chamadas de funções que retornam valores.
+
+
+
+== Tipos de Dados e Declaração de Variáveis
+
+Kotlin diferencia variáveis mutáveis e imutáveis de forma explícita:
+
+``` kotlin
+val nome: String = "João" // Imutável (constante)
+var idade: Int = 30       // Mutável
+```
+
+**`val`**: Declara um valor que não pode ser alterado após atribuído.
+
+**`var`**: Declara um valor que pode ser reatribuído.
+
+=== Inferência de Tipo
+
+Não é necessário declarar o tipo explicitamente, Kotlin pode inferir com base no valor:
+
+``` kotlin
+val nome = "João"  // Infere como String
+var idade = 30     // Infere como Int
+```
+
+== 2. Null Safety (Segurança com Nulos)
+
+Um dos grandes benefícios de Kotlin é a segurança contra ponteiros nulos, reduzindo erros comuns em Java. Você deve declarar explicitamente se uma variável pode ser nula:
+
+``` kotlin
+var nome: String? = null // Tipo nullable (pode conter null)
+```
+
+Para acessar ou usar variáveis `nullable` exige verificação explícita (e.g., `if` ou operador `?.` de chamada segura):
+
+``` kotlin
+nome?.length  // Retorna o tamanho apenas se 'nome' não for nulo
+```
+
+
+
+==== Valores Padrão e Argumentos Nomeados
+
+Em Kotlin, funções podem ter parâmetros com valores padrão e suportam a passagem de argumentos nomeados.
+
+Exemplo básico de funções:
+
+```kotlin
+fun printMessage(message: String): Unit {                               // 1
+    println(message)
+}
+
+fun printMessageWithPrefix(message: String, prefix: String = "Info") {  // 2
+    println("[$prefix] $message")
+}
+
+fun sum(x: Int, y: Int): Int {                                          // 3
+    return x + y
+}
+
+fun multiply(x: Int, y: Int) = x * y                                    // 4
+
+fun main() {
+    printMessage("Hello")                                               // 5                    
+    printMessageWithPrefix("Hello", "Log")                              // 6
+    printMessageWithPrefix("Hello")                                     // 7
+    printMessageWithPrefix(prefix = "Log", message = "Hello")           // 8
+    println(sum(1, 2))                                                  // 9
+    println(multiply(2, 4))                                             // 10
+}
+```
+
+Destaques:
+
+- **1:** Função que aceita um parâmetro do tipo `String` e não retorna valor (`Unit`).
+- **2:** Função com segundo parâmetro opcional, que possui valor padrão `"Info"`.
+- **3 e 4:** Funções que retornam valores inteiros, sendo que a segunda é uma função de expressão única, onde o tipo de retorno é inferido automaticamente.
+- **5-8:** Exemplos de chamadas, demonstrando como usar argumentos posicionais, com valores padrão, ou argumentos nomeados.
+- **9-10:** Chamadas de funções que retornam valores.
+
+== 4. Controle de Fluxo
+
+=== If e Expressões
+
+O `if` pode ser usado como uma expressão que retorna valores:
+
+``` kotlin
+val mensagem = if (idade > 18) "Maior de idade" else "Menor de idade"
+```
+
+Também permite blocos mais complexos:
+
+``` kotlin
+val status = if (idade > 18) {
+    println("Usuário é adulto")
+    "Maior de idade"
+} else {
+    println("Usuário é menor de idade")
+    "Menor de idade"
+}
+```
+
+=== When (Alternativa ao Switch)
+
+O `when` é mais poderoso que o tradicional `switch` encontrado em outras linguagens:
+
+``` kotlin
+val faixaEtaria = when {
+    idade in 0..12 -> "Criança"
+    idade in 13..17 -> "Adolescente"
+    idade >= 18 -> "Adulto"
+    else -> "Idade não identificada"
+}
+```
+
+== 5. Classes e Programação Orientada a Objetos
+
+Kotlin suporta POO com construtores primários diretos:
+
+``` kotlin
+class Pessoa(val nome: String, var idade: Int)
+
+val pessoa = Pessoa("Ana", 25)
+println(pessoa.nome) // "Ana"
+```
+
+Destaques:
+
+- **Propriedades**: Valores podem ser definidos diretamente no construtor e acessados como atributos.
+
+- **Modificadores de Visibilidade**: Seguem convenções como `public`, `private`, e `protected`.
+
+== 6. Coleções e Iteração
+
+Kotlin oferece suporte poderoso para manipular listas e coleções:
+
+``` kotlin
+val numeros = listOf(1, 2, 3, 4, 5) // Lista imutável
+val mutaveis = mutableListOf(1, 2, 3) // Lista mutável
+mutaveis.add(4)
+
+for (numero in numeros) {
+    println(numero)
+}
+```
+
+Destaques:
+
+- Métodos funcionais como `map`, `filter`, `forEach` promovem programação mais declarativa:
+
+``` kotlin
+val pares = numeros.filter { it % 2 == 0 }  // Filtra apenas números pares
+```
+
+== 7. Extensões
+
+Kotlin permite adicionar métodos ou propriedades a outras classes, sem alterá-las diretamente, por meio de **Extension Functions**:
+
+``` kotlin
+fun String.saudar(): String {
+    return "Olá, $this!"
+}
+
+println("João".saudar()) // Saída: "Olá, João!"
+```
+
+== 8. Corrotinas (Concorrência e Assíncrono)
+
+Kotlin oferece suporte nativo para programação assíncrona com corrotinas, usando a biblioteca `kotlinx.coroutines`:
+
+``` kotlin
+import kotlinx.coroutines.*
+
+fun main() = runBlocking {
+    launch {
+        delay(1000L)
+        println("Olá do Coroutines!")
+    }
+    println("Execução principal")
+}
+```
+
+Destaques:
+
+- **`CoroutineScope` e `launch`** para executar tarefas em paralelo.
+
+- **`async` e `await`** para execução assíncrona com retorno de resultados.
+
+== 9. Lambdas e Programação Funcional
+
+Funções lambdas são o foco da programação funcional em Kotlin:
+
+``` kotlin
+val saudacao: (String) -> String = { nome -> "Olá, $nome!" }
+println(saudacao("Ana")) // Saída: "Olá, Ana!"
+```
+
+== 10. Interoperabilidade com Java
+
+Kotlin é 100% interoperável com Java, permitindo que ambos coexistam em um mesmo projeto. Métodos e classes Java podem ser chamados diretamente.
+``` kotlin
+val listaJava = java.util.ArrayList<String>()
+listaJava.add("Item")
+```
+
+== 11. Data Classes
+
+Kotlin oferece **Data Classes**, que são ideais para representar modelos de dados:
+
+``` kotlin
+data class Pessoa(val nome: String, var idade: Int)
+
+val pessoa = Pessoa("Ana", 25)
+println(pessoa) // Saída: Pessoa(nome=Ana, idade=25)
+```
+
+- Métodos `toString`, `equals`, e `hashCode` são gerados automaticamente.
+
+== 12. Recursos Avançados
+
+- **Smart Casts**: O Kotlin automaticamente faz conversões de tipo seguras.
+
+- **Delegated Properties**: Atribua comportamento customizado a propriedades com `by`:
+
+``` kotlin
+val lazyValue: String by lazy {
+    println("Computando valor...")
+    "Valor Calculado"
+}
+println(lazyValue) // "Valor Calculado" apenas quando acessado pela primeira vez.
+```
+
+- **Default e Named Parameters**: Melhoram a legibilidade ao chamar funções:
+``` kotlin
+fun exemplo(nome: String = "Desconhecido", idade: Int = 18) {
+    println("Nome: $nome, Idade: $idade")
+}
+
+exemplo(idade = 25) // Nome: Desconhecido, Idade: 25
+```
+
+== Conclusão
+
+Kotlin é uma linguagem moderna e versátil, combinando segurança, produtividade, e interoperabilidade. Com APIs elegantes, suporte para programação funcional e imperativa, e a simplicidade de seu design, ela se destaca para projetos novos e modernos, além da integração com o legado Java em ambientes corporativos.
