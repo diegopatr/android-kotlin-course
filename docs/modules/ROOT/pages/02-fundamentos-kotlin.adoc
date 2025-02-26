@@ -1,4 +1,4 @@
-= Princípios Básicos da Linguagem Kotlin
+= Fundamentos da Linguagem Kotlin
 
 Kotlin é uma linguagem de programação moderna, concisa e poderosa, desenvolvida pela JetBrains.
 Ela foi projetada para ser totalmente interoperável com Java, o que significa que código Kotlin e Java podem coexistir e interagir no mesmo projeto.
