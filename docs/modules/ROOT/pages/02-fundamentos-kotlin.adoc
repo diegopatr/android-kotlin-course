@@ -1,0 +1,1406 @@
+= Princípios Básicos da Linguagem Kotlin
+
+Kotlin é uma linguagem de programação moderna, concisa e poderosa, desenvolvida pela JetBrains.
+Ela foi projetada para ser totalmente interoperável com Java, o que significa que código Kotlin e Java podem coexistir e interagir no mesmo projeto.
+Kotlin é uma linguagem estaticamente tipada, o que ajuda a evitar erros em tempo de compilação, e possui inferência de tipos, tornando o código mais limpo e legível.
+Os seus princípios básicos visam aumentar a produtividade do desenvolvedor e minimizar a ocorrência de erros.
+
+== Conceitos Básicos
+
+Um programa Kotlin é composto por funções, classes, variáveis e expressões.
+A combinação desses elementos permite criar desde scripts simples até aplicações complexas.
+
+.Exemplo: "Olá, Mundo!"
+[source,kotlin]
+----
+package com.example.helloapp // <1>
+
+fun main() { // <2>
+    println("Olá, Mundo!") // <3>
+}
+----
+
+<1> Declaração do pacote.
+Embora opcional, é uma boa prática para organizar o código e evitar conflitos de nomes.
+<2> Função `main`: O ponto de entrada de qualquer aplicação Kotlin.
+É a primeira função a ser executada.
+<3> `println`: Uma função da biblioteca padrão do Kotlin que imprime uma string no console, seguida de uma nova linha.
+
+[#_3_funções]
+== Funções
+
+Em Kotlin, funções são cidadãos de primeira classe, o que significa que podem ser tratadas como qualquer outro valor (atribuídas a variáveis, passadas como argumentos, retornadas de outras funções).
+Funções podem ter parâmetros com valores padrão e suportam argumentos nomeados, o que aumenta a flexibilidade e a legibilidade do código.
+
+.Exemplo: Funções com Parâmetros e Retornos
+[source,kotlin]
+----
+fun printMessage(message: String): Unit {                               // <1>
+    println(message)
+}
+
+fun printMessageWithPrefix(message: String, prefix: String = "Info") {  // <2>
+    println("[$prefix] $message")
+}
+
+fun sum(x: Int, y: Int): Int {                                          // <3>
+    return x + y
+}
+
+fun multiply(x: Int, y: Int) = x * y                                    // <4>
+
+fun main() {
+    printMessage("Hello")                                               // <5>
+    printMessageWithPrefix("Hello", "Log")                              // <6>
+    printMessageWithPrefix("Hello")                                     // <7>
+    printMessageWithPrefix(prefix = "Log", message = "Hello")           // <8>
+    println(sum(1, 2))                                                  // <9>
+    println(multiply(2, 4))                                             // <10>
+}
+----
+
+<1> `printMessage`: Define uma função que recebe uma string como parâmetro (`message`) e não retorna nenhum valor (`Unit`, que é equivalente a `void` em Java, mas pode ser omitido).
+<2> `printMessageWithPrefix`: Define uma função que recebe uma mensagem e um prefixo opcional.
+Se o prefixo não for fornecido, o valor padrão "Info" será usado.
+Note o uso de string templates para interpolar as variáveis `prefix` e `message`.
+<3> `sum`: Define uma função que recebe dois inteiros (`x` e `y`) e retorna a soma deles.
+O tipo de retorno `Int` é explicitamente declarado.
+<4> `multiply`: Define uma função que, de forma concisa, retorna o produto de dois inteiros.
+Kotlin permite definir funções de uma única expressão (single-expression functions) desta forma.
+O tipo de retorno é inferido.
+<5> Chama `printMessage` com o argumento "Hello".
+<6> Chama `printMessageWithPrefix` com ambos os argumentos.
+<7> Chama `printMessageWithPrefix` apenas com a mensagem, usando o valor padrão para o prefixo.
+<8> Chama `printMessageWithPrefix` usando argumentos nomeados.
+Isso permite especificar os argumentos em qualquer ordem e melhora a legibilidade quando a função tem muitos parâmetros ou parâmetros com valores padrão.
+<9> Chama `sum`, passando 1 e 2 como argumentos, e imprime o resultado.
+<10> Chama `multiply`, passando 2 e 4, e imprime o resultado.
+
+== Variáveis
+
+Kotlin distingue claramente entre variáveis mutáveis e imutáveis.
+A inferência de tipos do Kotlin permite que o compilador determine o tipo da variável com base no valor atribuído, reduzindo a verbosidade do código.
+
+=== Declaração de Variáveis
+
+.Exemplo: Declaração de Variáveis
+[source,kotlin]
+----
+var a: String = "inicial"  // <1>
+println(a)
+
+val b: Int = 1             // <2>
+val c = 3                  // <3>
+----
+
+<1> `var`: Declara uma variável *mutável* (o valor pode ser alterado).
+O tipo `String` é explicitamente declarado, mas poderia ser inferido.
+<2> `val`: Declara uma variável *imutável* (o valor não pode ser alterado após a inicialização, similar a `final` em Java).
+O tipo `Int` é explicitamente declarado.
+<3> `val`: Declara uma variável imutável.
+O tipo `Int` é inferido pelo compilador.
+Recomenda-se usar `val` sempre que possível, promovendo a imutabilidade e tornando o código mais seguro e fácil de entender.
+
+=== Inicialização Condicional e Variáveis Não Inicializadas
+
+.Exemplo: Inicialização de Variáveis
+[source,kotlin]
+----
+// var e: Int  // <1>
+// println(e)  // <2>
+
+val d: Int  // <3>
+
+if (true) { //substitua por algumaCondicao()
+    d = 1   // <4>
+} else {
+    d = 2   // <4>
+}
+
+println(d) // <5>
+----
+
+<1> Declara uma variável mutável `e` do tipo `Int` *sem* inicializá-la.
+<2> **Erro de compilação**: Em Kotlin, variáveis locais precisam ser inicializadas antes de serem usadas.
+Isso evita o problema de acessar variáveis com valores indefinidos.
+<3> Declara uma variável imutável `d` do tipo `Int` sem inicializá-la imediatamente.
+<4> Inicializa `d` condicionalmente.
+O compilador do Kotlin é inteligente o suficiente para garantir que `d` seja definitivamente atribuída antes de ser usada, independentemente do caminho de execução.
+<5> `d` pode ser usada aqui porque o compilador garante que ela foi inicializada em todos os caminhos de execução possíveis.
+
+== Segurança de Nulos (Null Safety)
+
+Um dos principais objetivos do Kotlin é eliminar o `NullPointerException` (NPE) do código.
+Em Kotlin, os tipos por padrão *não* permitem o valor `null`.
+Para indicar que uma variável pode conter `null`, é necessário usar um tipo anulável (nullable type), adicionando um `?` ao final do tipo.
+
+.Exemplo: Tipos Anuláveis e Não Anuláveis
+[source,kotlin]
+----
+var neverNull: String = "Isto não pode ser nulo"              // <1>
+// neverNull = null                                           // <2>
+
+var nullable: String? = "Aqui pode ter um nulo"               // <3>
+nullable = null                                               // <4>
+
+var inferredNonNull = "O compilador assume que não é nulo"    // <5>
+// inferredNonNull = null                                     // <6>
+
+fun strLength(notNull: String): Int {                         // <7>
+    return notNull.length
+}
+
+strLength(neverNull)                                          // <8>
+// strLength(nullable)                                        // <9>
+----
+
+<1> Declara uma variável `neverNull` do tipo `String`.
+O tipo `String` (sem `?`) indica que a variável *não* pode conter `null`.
+<2> **Erro de compilação**: Tentar atribuir `null` a uma variável não anulável resulta em um erro de compilação.
+<3> Declara uma variável `nullable` do tipo `String?`.
+O `?` indica que a variável *pode* conter `null`.
+<4> Atribui `null` a `nullable`.
+Isso é permitido porque o tipo é `String?`.
+<5> Declara uma variável `inferredNonNull`.
+Como o valor inicial não é `null`, o compilador infere o tipo como `String` (não anulável).
+<6> **Erro de compilação**: Tentar atribuir `null` posteriormente resulta em erro, mesmo que o tipo não tenha sido explicitamente declarado como `String`.
+<7> Define uma função `strLength` que aceita uma `String` não anulável como argumento.
+<8> Chama `strLength` com `neverNull`.
+Isso é válido porque `neverNull` é do tipo `String`.
+<9> **Erro de compilação**: Tentar chamar `strLength` com `nullable` resulta em erro, porque `nullable` é do tipo `String?`, e a função espera `String`.
+
+=== Trabalhando com Valores Anuláveis
+
+Para acessar membros de uma variável anulável, você tem algumas opções:
+
+* **Verificação explícita de nulidade:**
+
+.Exemplo: Verificação explícita de nulidade
+[source,kotlin]
+----
+if (nullable != null) {
+    println(nullable.length) // Seguro: dentro do if, nullable é "smart cast" para String
+}
+----
+
+* **Chamada segura (`?.`):**
+
+.Exemplo: Chamada Segura Utilizando Operador `?`
+[source,kotlin]
+----
+println(nullable?.length) // Imprime o comprimento se nullable não for null, caso contrário, imprime null.
+----
+O operador `?.` permite acessar um membro (ou chamar um método) somente se a variável não for nula.  Se a variável for nula, o resultado da expressão será `null`.
+
+* **Operador Elvis (`?:`):**
+
+.Exemplo: Operador Elvis `?:`
+[source,kotlin]
+----
+val length = nullable?.length ?: 0 // Se nullable?.length for null, usa o valor 0.
+----
+
+O operador Elvis fornece um valor alternativo para o caso em que a expressão à esquerda seja `null`.
+
+.Exemplo: Função que Descreve uma String Anulável
+[source,kotlin]
+----
+fun describeString(maybeString: String?): String {       // <1>
+    if (maybeString != null && maybeString.length > 0) { // <2>
+        return "String de comprimento ${maybeString.length}"
+    } else {
+        return "String vazia ou nula"                   // <3>
+    }
+}
+----
+
+<1> `describeString`: Uma função que recebe uma `String?` (string anulável) e retorna uma descrição.
+<2> Verifica se `maybeString` não é nula *e* se não está vazia.
+Dentro do bloco `if`, `maybeString` é automaticamente "smart cast" para `String` (não anulável), então podemos acessar `.length` com segurança.
+<3> Se `maybeString` for nula ou vazia, retorna uma mensagem indicando isso.
+
+== Classes
+
+Classes em Kotlin são declaradas usando a palavra-chave `class`.
+A declaração consiste no nome da classe, um cabeçalho opcional (para parâmetros de tipo, construtor primário, etc.) e um corpo, delimitado por chaves.
+Se a classe não tiver corpo, as chaves podem ser omitidas.
+
+.Exemplo: Declaração e Uso de Classes
+[source,kotlin]
+----
+class Customer                                  // <1>
+
+class Contact(val id: Int, var email: String)   // <2>
+
+fun main() {
+
+    val customer = Customer()                   // <3>
+
+    val contact = Contact(1, "mary@gmail.com")  // <4>
+
+    println(contact.id)                         // <5>
+    contact.email = "jane@gmail.com"            // <6>
+}
+----
+
+<1> `Customer`: Declara uma classe simples, sem propriedades ou construtor explícito.
+Kotlin automaticamente fornece um construtor padrão (sem argumentos) para esta classe.
+<2> `Contact`: Declara uma classe com um construtor primário que recebe dois parâmetros: `id` (imutável, do tipo `Int`) e `email` (mutável, do tipo `String`).
+Esses parâmetros também definem propriedades da classe com os mesmos nomes.
+<3> Cria uma instância de `Customer` usando o construtor padrão (sem argumentos).
+Note que Kotlin *não* usa a palavra-chave `new` para criar objetos.
+<4> Cria uma instância de `Contact`, passando valores para o construtor primário.
+<5> Acessa a propriedade `id` do objeto `contact`.
+<6> Modifica a propriedade `email` do objeto `contact`.
+Isso é permitido porque `email` foi declarado com `var`.
+
+== Herança
+
+Kotlin suporta herança de classes, permitindo criar hierarquias de classes e reutilizar código.
+Por padrão, as classes em Kotlin são `final` (não podem ser herdadas).
+Para permitir que uma classe seja herdada, é necessário usar o modificador `open`.
+
+.Exemplo: Visão Geral de Herança
+[source,kotlin]
+----
+open class Dog {                // <1>
+    open fun sayHello() {       // <2>
+        println("wow wow!")
+    }
+}
+
+class Yorkshire : Dog() {       // <3>
+    override fun sayHello() {   // <4>
+        println("wif wif!")
+    }
+}
+
+fun main() {
+    val dog: Dog = Yorkshire()
+    dog.sayHello()
+}
+----
+
+<1> `Dog`: Declara uma classe `Dog` com o modificador `open`.
+Isso permite que outras classes herdem de `Dog`.
+<2> `sayHello`: Declara um método `sayHello` com o modificador `open`.
+Isso permite que subclasses sobrescrevam esse método.
+<3> `Yorkshire`: Declara uma classe `Yorkshire` que herda de `Dog`.
+Os parênteses `()` após `Dog` indicam uma chamada ao construtor padrão da superclasse.
+<4> `override fun sayHello`: Sobrescreve o método `sayHello` da superclasse.
+O modificador `override` é obrigatório para indicar explicitamente a sobrescrita.
+O polimorfismo permite tratar objetos de diferentes classes de forma uniforme com base em sua superclasse comum.
+
+=== Herança com Construtor com Parâmetros
+
+.Exemplo: Herança com Construtor com Parâmetros
+[source,kotlin]
+----
+open class Tiger(val origin: String) {
+    fun sayHello() {
+        println("Um tigre de $origin diz: grrhhh!")
+    }
+}
+
+class SiberianTiger : Tiger("Sibéria")                  // <1>
+
+fun main() {
+    val tiger: Tiger = SiberianTiger()
+    tiger.sayHello()
+}
+----
+
+<1> `SiberianTiger`: Declara uma classe `SiberianTiger` que herda de `Tiger`.
+A chamada ao construtor da superclasse `Tiger("Sibéria")` passa o valor "Sibéria" para o parâmetro `origin` do construtor de `Tiger`.
+
+=== Passando Argumentos para o Construtor da Superclasse
+
+.Exemplo: Passando Argumentos para o Construtor da Superclasse
+[source,kotlin]
+----
+open class Lion(val name: String, val origin: String) {
+    fun sayHello() {
+        println("$name, o leão de $origin, diz: graoh!")
+    }
+}
+
+class Asiatic(name: String) : Lion(name = name, origin = "Índia") // <1>
+
+fun main() {
+    val lion: Lion = Asiatic("Rufo")                              // <2>
+    lion.sayHello()
+}
+----
+
+<1> `Asiatic`: Declara uma classe `Asiatic` que herda de `Lion`.
+O construtor de `Asiatic` recebe apenas o parâmetro `name`.
+A chamada ao construtor da superclasse `Lion(name = name, origin = "Índia")` passa o valor de `name` e o valor fixo "Índia" para os parâmetros `name` e `origin` de `Lion`, respectivamente.
+Note que o `name` passado para o construtor de `Asiatic` não é declarado nem como `val` nem como `var`, pois ele é apenas repassado para a superclasse e não se torna uma propriedade de `Asiatic`.
+<2> Cria uma instância de `Asiatic` passando "Rufo" como o nome.
+
+== Controle de Fluxo (Control Flow)
+
+=== When
+
+`when` é uma construção de controle de fluxo poderosa e flexível em Kotlin, que substitui o `switch-case` de outras linguagens.  `when` pode ser usado tanto como uma declaração quanto como uma expressão.
+
+==== Declaração `when`
+
+[source,kotlin]
+----
+fun main() {
+    cases("Hello")
+    cases(1)
+    cases(0L) // Long
+    cases(MyClass())
+    cases("hello")
+}
+
+fun cases(obj: Any) { // <1>
+    when (obj) {
+        1 -> println("One")            // <2>
+        "Hello" -> println("Greeting") // <3>
+        is Long -> println("Long")     // <4>
+        !is String -> println("Not a string") // <5>
+        else -> println("Unknown")     // <6>
+    }
+}
+
+class MyClass
+----
+
+<1> `cases`: Uma função que recebe um objeto de tipo `Any` (a raiz da hierarquia de tipos em Kotlin) e usa `when` para determinar o que imprimir.
+<2> Verifica se `obj` é igual a 1.
+<3> Verifica se `obj` é igual à string "Hello".
+<4> Verifica se `obj` é do tipo `Long`.
+O operador `is` realiza uma verificação de tipo.
+<5> Verifica se `obj` *não* é do tipo `String`.
+O operador `!is` é a negação de `is`.
+<6> Caso padrão: executado se nenhuma das outras condições for verdadeira.
+
+==== Expressão `when`
+
+Quando `when` é usado como uma expressão, ele retorna um valor.
+Nesse caso, o `else` é obrigatório (a menos que o compilador possa provar que todos os casos possíveis estão cobertos).
+
+[source,kotlin]
+----
+fun main() {
+    println(whenAssign("Hello"))
+    println(whenAssign(3.4))
+    println(whenAssign(1))
+    println(whenAssign(MyClass()))
+}
+
+fun whenAssign(obj: Any): Any { // <1>
+    val result = when (obj) {
+        1 -> "one"                               // <2>
+        "Hello" -> 1                             // <3>
+        is Long -> false                         // <4>
+        else -> 42                               // <5>
+    }
+    return result
+}
+
+class MyClass
+----
+
+<1> `whenAssign`: Uma função que recebe um objeto de tipo `Any` e usa `when` como uma expressão para retornar um valor.
+<2> Se `obj` for igual a 1, retorna a string "one".
+<3> Se `obj` for igual à string "Hello", retorna o inteiro 1.
+<4> Se `obj` for do tipo `Long`, retorna `false`.
+<5> Caso padrão: retorna o inteiro 42. O `else` é obrigatório aqui porque `when` está sendo usado como uma expressão, e o compilador precisa garantir que um valor seja retornado em todos os casos.
+
+=== Loops
+
+Kotlin suporta os loops `for`, `while` e `do-while`.
+
+==== `for`
+
+O loop `for` em Kotlin itera sobre qualquer coisa que forneça um iterador (por exemplo, coleções, ranges, arrays).
+
+[source,kotlin]
+----
+val cakes = listOf("carrot", "cheese", "chocolate")
+
+for (cake in cakes) { // <1>
+    println("Yummy, it's a $cake cake!")
+}
+----
+
+<1> Itera sobre a lista `cakes`.
+A cada iteração, a variável `cake` recebe o valor do elemento atual da lista.
+
+==== `while` e `do-while`
+
+`while` e `do-while` funcionam como em outras linguagens.
+
+[source,kotlin]
+----
+fun eatACake() = println("Eat a Cake")
+fun bakeACake() = println("Bake a Cake")
+
+fun main() {
+    var cakesEaten = 0
+    var cakesBaked = 0
+
+    while (cakesEaten < 5) { // <1>
+        eatACake()
+        cakesEaten++
+    }
+
+    do {                                   // <2>
+        bakeACake()
+        cakesBaked++
+    } while (cakesBaked < cakesEaten)
+}
+----
+
+<1> `while`: Executa o bloco de código repetidamente enquanto a condição `cakesEaten < 5` for verdadeira.
+<2> `do-while`: Executa o bloco de código pelo menos uma vez e, em seguida, continua a executá-lo repetidamente enquanto a condição `cakesBaked < cakesEaten` for verdadeira.
+
+=== Iteradores
+
+Kotlin permite criar iteradores customizados para suas classes.
+
+[source,kotlin]
+----
+class Animal(val name: String)
+
+class Zoo(val animals: List<Animal>) {
+    operator fun iterator(): Iterator<Animal> { // <1>
+        return animals.iterator()                        // <2>
+    }
+}
+
+fun main() {
+    val zoo = Zoo(listOf(Animal("zebra"), Animal("lion")))
+    for (animal in zoo) {                                // <3>
+        println("Watch out, it's a ${animal.name}")
+    }
+}
+----
+
+<1> Define um operador `iterator` na classe `Zoo`.
+A palavra-chave `operator` indica que esta função sobrecarrega um operador (neste caso, o operador de iteração).
+<2> Retorna o iterador da lista de animais.
+<3> Usa o iterador customizado da classe `Zoo` em um loop `for`.
+
+=== Ranges
+
+Ranges (intervalos) são uma forma concisa de representar sequências de valores.
+
+[source,kotlin]
+----
+for (i in 0..3) {             // <1>
+    print(i)
+}
+print(" ")
+
+for (i in 0 until 3) {        // <2>
+    print(i)
+}
+print(" ")
+
+for (i in 2..8 step 2) {      // <3>
+    print(i)
+}
+print(" ")
+
+for (i in 3 downTo 0) {       // <4>
+    print(i)
+}
+print(" ")
+----
+
+<1> `0..3`: Cria um range inclusivo que vai de 0 a 3 (incluindo 0 e 3).
+<2> `0 until 3`: Cria um range exclusivo que vai de 0 a 3 (incluindo 0, mas *excluindo* 3).
+<3> `2..8 step 2`: Cria um range de 2 a 8, com um incremento de 2.
+<4> `3 downTo 0`: Cria um range decrescente de 3 a 0.
+
+Ranges de caracteres também são suportados:
+
+[source,kotlin]
+----
+for (c in 'a'..'d') { // <1>
+    print(c)
+}
+print(" ")
+
+for (c in 'z' downTo 's' step 2) { // <2>
+    print(c)
+}
+print(" ")
+----
+
+<1> Itera sobre os caracteres de 'a' a 'd'.
+<2> Itera sobre os caracteres de 'z' a 's', em ordem decrescente, com um passo de 2.
+
+Ranges são úteis em expressões condicionais, especialmente com o operador `in`:
+
+[source,kotlin]
+----
+val x = 2
+if (x in 1..5) { // <1>
+    print("x is in range from 1 to 5")
+}
+if (x !in 6..10) { // <2>
+    print("x is not in range from 6 to 10")
+}
+----
+
+<1> Verifica se `x` está dentro do range de 1 a 5 (inclusivo).
+<2> Verifica se `x` *não* está dentro do range de 6 a 10 (inclusivo).
+
+=== Verificações de Igualdade
+
+Kotlin usa `==` para comparação estrutural (verifica se os objetos têm o mesmo conteúdo) e `===` para comparação referencial (verifica se os objetos são exatamente os mesmos na memória).
+
+[source,kotlin]
+----
+val authors = setOf("Shakespeare", "Hemingway", "Twain")
+val writers = setOf("Twain", "Shakespeare", "Hemingway")
+
+println(authors == writers)   // <1>
+println(authors === writers)  // <2>
+----
+
+<1> `==`: Compara os *conteúdos* dos conjuntos `authors` e `writers`.
+Retorna `true` porque os conjuntos contêm os mesmos elementos, mesmo que em ordens diferentes.
+<2> `===`: Compara as *referências* dos conjuntos `authors` e `writers`.
+Retorna `false` porque `authors` e `writers` são objetos distintos na memória.
+
+=== Expressões Condicionais
+
+Em Kotlin, `if` pode ser usado como uma expressão (retornando um valor), substituindo o operador ternário (`? :`) de outras linguagens.
+
+[source,kotlin]
+----
+fun max(a: Int, b: Int) = if (a > b) a else b // <1>
+
+println(max(99, -42))
+----
+
+<1> `if` como expressão: Se `a > b`, a expressão `if` retorna `a`; caso contrário, retorna `b`.
+
+== Coleções de Dados (Data Collections)
+
+Kotlin oferece uma rica API para trabalhar com coleções (listas, conjuntos, mapas, etc.).
+As coleções podem ser mutáveis ou imutáveis.
+
+=== Listas (List)
+
+Uma lista é uma coleção ordenada de itens.
+
+[source,kotlin]
+----
+val systemUsers: MutableList<Int> = mutableListOf(1, 2, 3)    // <1>
+val sudoers: List<Int> = systemUsers                          // <2>
+
+fun addSystemUser(newUser: Int) {                             // <3>
+    systemUsers.add(newUser)
+}
+
+fun getSysSudoers(): List<Int> {                              // <4>
+    return sudoers
+}
+
+fun main() {
+    addSystemUser(4)                                          // <5>
+    println("Tot sudoers: ${getSysSudoers().size}")           // <6>
+    getSysSudoers().forEach { i -> println("Usuário: $i") }   // <7>
+}
+----
+
+<1> `mutableListOf`: Cria uma lista *mutável* de inteiros.
+<2> `systemUsers` é atribuída a `sudoers`. `sudoers` é do tipo `List<Int>` (lista imutável), fornecendo uma *visão* imutável da lista mutável `systemUsers`.
+Isso significa que `sudoers` não pode ser modificada diretamente, mas se `systemUsers` for modificada, as mudanças serão refletidas em `sudoers`.
+<3> `addSystemUser`: Adiciona um novo usuário à lista mutável `systemUsers`.
+<4> `getSysSudoers`: Retorna a visão imutável `sudoers` da lista.
+<5> Adiciona um novo usuário.
+<6> Imprime o tamanho da lista (usando a visão imutável).
+<7> Itera sobre os elementos da lista (usando a visão imutável) e imprime cada um deles.
+
+=== Conjuntos (Set)
+
+Um conjunto é uma coleção não ordenada de itens *únicos* (não permite duplicatas).
+
+[source,kotlin]
+----
+val openIssues: MutableSet<String> = mutableSetOf("descr1", "descr2", "descr3") // <1>
+
+fun addIssue(uniqueDesc: String): Boolean {
+    return openIssues.add(uniqueDesc)                                          // <2>
+}
+
+fun getStatusLog(isAdded: Boolean): String {
+    return if (isAdded) "Registrado com sucesso" else "Duplicado e rejeitado" // <3>
+}
+
+fun main() {
+    println("Issue: ${getStatusLog(addIssue("descr4"))}")                     // <4>
+    println("Issue: ${getStatusLog(addIssue("descr2"))}")                     // <5>
+}
+----
+
+<1> `mutableSetOf`: Cria um conjunto *mutável* de strings.
+<2> `addIssue`: Tenta adicionar uma nova descrição ao conjunto.
+O método `add` de um `MutableSet` retorna `true` se o elemento foi adicionado (ou seja, se ele não existia no conjunto) e `false` se o elemento já existia (e, portanto, não foi adicionado).
+<3> `getStatusLog`: Retorna uma mensagem indicando se a adição foi bem-sucedida ou não.
+<4> Tenta adicionar uma nova descrição ("descr4") e imprime o resultado.
+<5> Tenta adicionar uma descrição duplicada ("descr2") e imprime o resultado.
+
+=== Mapas (Map)
+
+Um mapa é uma coleção de pares chave-valor, onde cada chave é única.
+
+[source,kotlin]
+----
+const val POINTS_X_PASS: Int = 15
+val EZPassAccounts: MutableMap<Int, Int> = mutableMapOf(1 to 100, 2 to 100, 3 to 100) // <1>
+val EZPassReport: Map<Int, Int> = EZPassAccounts                                      // <2>
+
+fun updatePointsCredit(accountId: Int) {
+    if (EZPassAccounts.containsKey(accountId)) {                                      // <3>
+        EZPassAccounts[accountId] = EZPassAccounts.getValue(accountId) + POINTS_X_PASS // <4>
+    }
+}
+
+fun main() {
+    updatePointsCredit(1)                                                             // <5>
+    EZPassReport.forEach { k, v -> println("ID $k: credit $v") }                      // <6>
+}
+----
+
+<1> `mutableMapOf`: Cria um mapa *mutável* de inteiros para inteiros.
+A sintaxe `1 to 100` cria um `Pair(1, 100)`.
+<2> `EZPassAccounts` é atribuído a uma variável do tipo `Map<Int, Int>` (mapa imutável).  `EZPassReport` fornece uma visão imutável do mapa mutável `EZPassAccounts`.
+<3> `updatePointsCredit`: Verifica se o mapa contém a chave `accountId`.
+<4> Se a chave existir, atualiza o valor associado a ela, adicionando `POINTS_X_PASS`.
+<5> Atualiza o crédito da conta com ID 1.
+<6> Itera sobre os pares chave-valor do mapa (usando a visão imutável) e imprime cada par.
+
+=== Filtros e Transformações
+
+Kotlin oferece várias funções de alta ordem para manipular coleções de forma funcional.
+
+==== Filter
+
+`filter`: Retorna uma nova lista contendo apenas os elementos que satisfazem um determinado predicado (uma função que retorna `true` ou `false`).
+
+[source,kotlin]
+----
+val numbers = listOf(1, -2, 3, -4, 5, -6)   // <1>
+val positives = numbers.filter { it > 0 }  // <2>
+val negatives = numbers.filter { it < 0 }  // <3>
+----
+
+<1> Uma lista de números.
+<2> Filtra os números positivos (aqueles que são maiores que 0).  `it` é uma referência implícita ao elemento atual da lista dentro do lambda.
+<3> Filtra os números negativos.
+
+==== Map
+
+`map`: Retorna uma nova lista contendo os resultados da aplicação de uma função de transformação a cada elemento da lista original.
+
+[source,kotlin]
+----
+val numbers = listOf(1, -2, 3, -4, 5, -6)  // <1>
+val doubled = numbers.map { it * 2 }      // <2>
+val tripled = numbers.map { it * 3 }      // <3>
+----
+
+<1> Uma lista de números.
+<2> Cria uma nova lista onde cada elemento é o dobro do elemento correspondente na lista original.
+<3> Cria uma nova lista onde cada elemento é o triplo do elemento correspondente na lista original.
+
+=== Operações Lógicas
+
+==== Any, All, None
+
+* `any`: Retorna `true` se pelo menos um elemento satisfizer o predicado.
+* `all`: Retorna `true` se todos os elementos satisfizerem o predicado.
+* `none`: Retorna `true` se nenhum elemento satisfizer o predicado.
+
+[source,kotlin]
+----
+val numbers = listOf(1, -2, 3, -4, 5, -6)
+val anyNegative = numbers.any { it < 0 }         // true
+val allEven = numbers.all { it % 2 == 0 }        // false
+val nonePositive = numbers.none { it > 0 }      // false
+----
+
+=== Busca de Elementos
+
+==== Find e FindLast
+
+* `find`: Retorna o primeiro elemento que satisfaz o predicado, ou `null` se nenhum elemento satisfizer.
+* `findLast`: Retorna o último elemento que satisfaz o predicado, ou `null` se nenhum elemento satisfizer.
+
+[source,kotlin]
+----
+val words = listOf("kotlin", "java", "python", "ruby")
+val firstJava = words.find { it.contains("java") }              // "java"
+val lastWithY = words.findLast { it.endsWith('y') }             // "ruby"
+----
+
+==== First e Last
+
+* `first`: Sem predicado, retorna o primeiro elemento da coleção (ou lança uma exceção se a coleção estiver vazia).
+Com predicado, retorna o primeiro elemento que satisfaz o predicado (ou lança uma exceção se nenhum elemento satisfizer).
+* `last`: Similar a `first`, mas retorna o último elemento.
+
+[source,kotlin]
+----
+val numbers = listOf(1, -2, 3, -4)
+val firstOdd = numbers.first { it % 2 != 0 }       // 1
+val lastPositive = numbers.last { it > 0 }         // 3
+----
+
+=== Manipulação de Coleções
+
+==== Partition
+
+`partition` divide uma coleção em duas listas: uma contendo os elementos que satisfazem um predicado e outra contendo os elementos que não satisfazem.
+
+.Exemplo
+[source,kotlin]
+----
+val numbers = listOf(1, -2, 3, -4, 5, -6)
+val (even, odd) = numbers.partition { it % 2 == 0 }  // even: [-2, -4, -6], odd: [1, 3, 5]
+----
+
+==== FlatMap
+
+`flatMap` transforma cada elemento de uma coleção em uma coleção *e depois* "achata" (flatten) todas as coleções resultantes em uma única lista.
+.Exemplo
+
+[source,kotlin]
+----
+val fruits = listOf("apple", "banana")
+val vegetables = listOf("carrot", "onion")
+val cart = listOf(fruits, vegetables)      // Uma lista de listas
+val flatCart = cart.flatMap { it }         // ["apple", "banana", "carrot", "onion"]
+----
+
+==== Ordenação (Sorted)
+
+* `sorted`: Retorna uma nova lista contendo os elementos da coleção original em ordem crescente (usando a ordem natural dos elementos, se houver, ou lançando uma exceção).
+* `sortedDescending`: Retorna uma nova lista em ordem decrescente.
+* `sortedBy`: Ordena de acordo com um critério.
+
+.Exemplo
+[source,kotlin]
+----
+val shuffled = listOf(5, 3, 1, 4, 2)
+val ascending = shuffled.sorted()  // [1, 2, 3, 4, 5]
+val descending = shuffled.sortedDescending()  // [5, 4, 3, 2, 1]
+----
+
+=== Contagem (Count)
+
+* `count()`: Retorna o número de elementos na coleção.
+* `count(predicate)`: Retorna o número de elementos que satisfazem o predicado.
+
+.Exemplo
+[source,kotlin]
+----
+val numbers = listOf(1, 2, 3, 4, 5)
+val evenCount = numbers.count { it % 2 == 0 }  // 2 (números pares)
+----
+
+=== Mínimo/Máximo
+
+==== MinOrNull, MaxOrNull
+
+* `minOrNull()`: Retorna o menor elemento da coleção, ou `null` se a coleção estiver vazia.
+* `maxOrNull()`: Retorna o maior elemento da coleção, ou `null` se a coleção estiver vazia.
+
+.Exemplo
+[source,kotlin]
+----
+val numbers = listOf(1, 3, 5)
+val min = numbers.minOrNull()   // 1
+val max = numbers.maxOrNull()   // 5
+
+val emptyList = emptyList<Int>()
+val emptyMin = emptyList.minOrNull() // null
+----
+
+== Funções de Escopo (Scope Functions)
+
+Funções de escopo são funções de alta ordem da biblioteca padrão do Kotlin que permitem executar um bloco de código no contexto de um objeto.
+Elas tornam o código mais conciso e legível.
+As principais funções de escopo são `let`, `with`, `run`, `apply` e `also`.
+
+=== let
+
+`let` é frequentemente usada para executar um bloco de código somente se um valor não for nulo (em combinação com o operador de chamada segura `?.`).
+Dentro do bloco `let`, o objeto é referenciado por `it`.  `let` retorna o resultado da última expressão do bloco.
+
+.Exemplo
+[source,kotlin]
+----
+val empty = "test".let {             // <1>
+    customPrint(it)                  // <2>
+    it.isEmpty()                     // <3>
+}
+println(" is empty: $empty")
+
+fun printNonNull(str: String?) {
+    println("Printing \"$str\":")
+    str?.let {                       // <4>
+        print("\t")
+        customPrint(it)
+        println()
+    }
+}
+
+fun printIfBothNonNull(strOne: String?, strTwo: String?) {
+    strOne?.let { firstString ->     // <5>
+        strTwo?.let { secondString ->
+            customPrint("$firstString : $secondString")
+            println()
+        }
+    }
+}
+
+fun customPrint(str: String){
+    print(str.uppercase())
+}
+----
+
+<1> Chama `let` na string "test".
+<2> `it` se refere à string "test" dentro do bloco `let`.
+<3> A última expressão do bloco (`it.isEmpty()`) é o valor de retorno de `let`.
+<4> Usa `let` com chamada segura (`?.`) para executar o bloco somente se `str` não for nulo.
+Dentro do bloco, `it` se refere ao valor não nulo de `str`.
+<5> `let` aninhados: Dentro do primeiro `let`, `it` é renomeado para `firstString` para maior clareza.
+Dentro do segundo `let`, `it` é renomeado para `secondString`.
+
+=== with
+
+`with` é uma função que recebe um objeto como argumento e um bloco de código como outro argumento.
+Dentro do bloco, você pode acessar os membros do objeto diretamente, sem usar o nome do objeto. `with` retorna o resultado da última expressão no bloco.  `with` *não* é uma função de extensão.
+
+.Exemplo
+[source,kotlin]
+----
+class Configuration(var host: String, var port: Int)
+
+fun main() {
+    val configuration = Configuration(host = "127.0.0.1", port = 9000)
+
+    with(configuration) {
+        println("$host:$port") // Acessa host e port diretamente
+    }
+
+    // alternativa
+    // println("${configuration.host}:${configuration.port}")
+}
+----
+
+=== apply
+
+`apply` é uma função de extensão que executa um bloco de código em um objeto e *retorna o próprio objeto*.
+Dentro do bloco, o objeto é referenciado por `this`. `apply` é útil para inicializar ou configurar um objeto.
+
+.Exemplo
+[source,kotlin]
+----
+data class Person(var name: String = "", var age: Int = 0, var about: String = "")
+fun main(){
+    val jake = Person().apply {                    // <1>
+        name = "Jake"                               // <2>
+        age = 30
+        about = "Android developer"
+    } // jake é o objeto Person modificado. <3>
+    println(jake)
+}
+----
+
+<1> Cria um objeto `Person` e imediatamente chama `apply` nele.
+<2> Dentro do bloco `apply`, `this` se refere ao objeto `Person`.
+As propriedades do objeto são modificadas diretamente.
+<3> O valor de retorno de `apply` é o próprio objeto `Person` (já modificado), que é atribuído a `jake`.
+
+=== also
+
+`also` é uma função de extensão semelhante a `apply`, mas dentro do bloco, o objeto é referenciado por `it` (em vez de `this`).  `also` também retorna o próprio objeto.  `also` é útil para realizar ações adicionais em um objeto, como logging, sem interromper a cadeia de chamadas.
+
+.Exemplo
+[source,kotlin]
+----
+data class Person(var name: String = "", var age: Int = 0, var about: String = "")
+fun main(){
+    val jake = Person("Jake", 30, "Android developer")   // <1>
+        .also {                                         // <2>
+            writeCreationLog(it)                        // <3>
+        }
+}
+----
+
+<1> Cria um objeto `Person`.
+<2> Chama `also` no objeto.
+<3> Dentro do bloco `also`, `it` se refere ao objeto `Person`.  `writeCreationLog` é uma função (não mostrada) que provavelmente registra a criação do objeto.
+O valor de retorno de `also` é o próprio objeto `Person`, permitindo encadear outras chamadas.
+
+=== run
+
+`run` combina `with` e `let`.
+Existem duas variantes de `run`:
+
+* **`run` como função de extensão:** Similar a `let`, mas acessa o objeto receptor com `this`.
+Retorna o resultado do lambda.
+Útil para executar um bloco que precisa de uma expressão e para transformar o objeto.
+
+* **`run` como função não-extensão:** Similar a `with`, mas retorna o resultado do lambda.
+Útil para calcular um valor em um escopo específico, onde variáveis locais são necessárias.
+
+Exemplos:
+
+**`run` como extensão:**
+
+```kotlin
+val length = "teste".run {
+    println("O comprimento de '$this' é $length") // this refere-se a "teste"
+    length // Retorna o comprimento da string
+}
+```
+
+**`run` como não-extensão:**
+
+```kotlin
+val result = run {
+    val x = 10
+    val y = 20
+    x + y // Retorna a soma de x e y
+}
+```
+
+Em resumo:
+
+[cols="1,1,1,1",options="header"]
+|===
+|Função   |Objeto de contexto |Valor de retorno       |É extensão?
+
+|let      |it                 |Resultado do lambda    |Sim
+|with     |this               |Resultado do lambda    |Não
+|run      |this               |Resultado do lambda    |Sim/Não
+|apply    |this               |Objeto de contexto     |Sim
+|also     |it                 |Objeto de contexto     |Sim
+|===
+
+== Impulsionadores de Produtividade (Productivity Boosters)
+
+=== Argumentos Nomeados (Named Arguments)
+
+Ao chamar uma função, você pode nomear um ou mais argumentos.
+Isso torna a chamada mais legível, especialmente quando a função tem muitos parâmetros ou parâmetros booleanos.
+
+.Exemplo
+[source,kotlin]
+----
+fun format(userName: String, domain: String) = "$userName@$domain"
+
+fun main() {
+    println(format("mario", "example.com"))                // <1>
+    println(format(userName = "foo", domain = "bar.com"))  // <2>
+    println(format(domain = "frog.com", userName = "pepe")) // <3>
+}
+----
+<1> Chamada posicional (sem nomear os argumentos).
+<2> Chamada com argumentos nomeados.
+<3> Argumentos nomeados podem ser especificados em qualquer ordem.
+
+=== Templates de String
+
+String templates permitem incluir variáveis e expressões diretamente dentro de strings, usando `$` para variáveis simples e `${}` para expressões.
+
+.Exemplo
+[source,kotlin]
+----
+val greeting = "Kotliner"
+println("Hello $greeting")                     // <1>
+println("Hello ${greeting.uppercase()}")       // <2>
+----
+<1> Interpolação de uma variável simples.
+<2> Interpolação de uma expressão (chamada de método).
+
+=== Declarações de Desestruturação (Destructuring Declarations)
+
+Declarações de desestruturação permitem extrair valores de objetos (como data classes, arrays, coleções, etc.) e atribuí-los a variáveis individuais de forma concisa.
+
+.Exemplo
+[source,kotlin]
+----
+data class Result(val code: Int, val message: String)
+
+fun main() {
+    val (x, y, z) = arrayOf(5, 10, 15)         // <1>
+
+    val map = mapOf("Alice" to 21, "Bob" to 25)
+    for ((name, age) in map) {                 // <2>
+        println("$name is $age years old")
+    }
+
+    val result = Result(200, "OK")
+    val (statusCode, statusMessage) = result  // <3>
+    println("Status: $statusCode, Message: $statusMessage")
+}
+----
+<1> Desestruturação de um array: `x` recebe 5, `y` recebe 10 e `z` recebe 15.
+<2> Desestruturação de pares chave-valor em um mapa, dentro de um loop `for`.
+<3> Em uma `data class`, o compilador gera automaticamente funções `componentN()` para cada propriedade declarada no construtor primário, permitindo a desestruturação.
+
+=== Casting Inteligente (Smart Casts)
+
+O compilador do Kotlin rastreia as verificações de tipo e realiza casts automáticos (smart casts) em muitas situações, reduzindo a necessidade de casts explícitos.
+
+.Exemplo
+[source,kotlin]
+----
+import java.time.LocalDate
+import java.time.chrono.ChronoLocalDate
+
+fun main() {
+    val date: ChronoLocalDate? = LocalDate.now()         // <1>
+
+    if (date != null) {
+        println(date.isLeapYear)                        // <2>
+    }
+
+    if (date is LocalDate) {
+        val month = date.monthValue                    // <3>
+        println(month)
+    }
+
+    if (date != null && date is LocalDate) {
+        println(date.dayOfMonth)                       // Smart cast após checagens combinadas.
+    }
+
+    when (date) {
+        is LocalDate -> println(date.year)             // Smart cast dentro do 'when'.
+        null -> println("Date is null")
+    }
+}
+----
+<1> Declara `date` como `ChronoLocalDate?` (anulável).
+<2> Dentro do bloco `if`, onde `date` é verificado como não nulo, o compilador automaticamente faz um "smart cast" de `date` para `ChronoLocalDate` (não anulável), permitindo acessar `isLeapYear` diretamente.
+<3> Dentro do bloco `if`, onde `date` é verificado como sendo do tipo `LocalDate`, o compilador faz um smart cast para `LocalDate`, permitindo acessar `monthValue`.
+
+== Exemplos Práticos em Kotlin
+
+A seguir, são apresentados três exemplos de código em Kotlin, com níveis de complexidade crescente, demonstrando diversos recursos da linguagem.
+
+=== Exemplo 1: Cálculo de IMC (Iniciante)
+
+Crie um programa em Kotlin que calcule o Índice de Massa Corporal (IMC) de uma pessoa. O programa deve:
+
+1.  Ter uma classe `Pessoa` com propriedades para nome, peso (em kg) e altura (em metros).
+2.  Ter uma função `calcularIMC` na classe `Pessoa` que retorne o IMC. A fórmula do IMC é: peso / (altura * altura).
+3.  Ter uma função `classificarIMC` na classe `Pessoa` que retorne uma string com a classificação do IMC, seguindo a tabela:
++
+[cols="1,1"]
+|===
+| IMC            | Classificação
+
+| Abaixo de 18.5 | Abaixo do peso  
+| 18.5 a 24.9    | Peso normal     
+| 25.0 a 29.9    | Sobrepeso       
+| 30.0 a 34.9    | Obesidade grau 1
+| 35.0 a 39.9    | Obesidade grau 2
+| 40.0 ou mais   | Obesidade grau 3
+|===
+
+4. Criar instâncias da classe `Pessoa` no `main` e imprimir o nome, IMC e classificação de cada pessoa.
+
+.Clique para visualizar a solução
+[%collapsible]
+====
+.Solução
+[source,kotlin]
+----
+class Pessoa(val nome: String, val peso: Double, val altura: Double) { // <1>
+
+    fun calcularIMC(): Double { // <2>
+        return peso / (altura * altura)
+    }
+
+    fun classificarIMC(): String { // <3>
+        val imc = calcularIMC()
+        return when {
+            imc < 18.5 -> "Abaixo do peso"
+            imc < 25.0 -> "Peso normal"
+            imc < 30.0 -> "Sobrepeso"
+            imc < 35.0 -> "Obesidade grau 1"
+            imc < 40.0 -> "Obesidade grau 2"
+            else -> "Obesidade grau 3"
+        }
+    }
+}
+
+fun main() {
+    val pessoa1 = Pessoa("João", 80.0, 1.80) // <4>
+    val pessoa2 = Pessoa("Maria", 65.0, 1.65)
+    val pessoa3 = Pessoa("Pedro", 100.0, 1.75)
+
+    println("${pessoa1.nome}: IMC = ${pessoa1.calcularIMC()}, Classificação: ${pessoa1.classificarIMC()}") // <5>
+    println("${pessoa2.nome}: IMC = ${pessoa2.calcularIMC()}, Classificação: ${pessoa2.classificarIMC()}")
+    println("${pessoa3.nome}: IMC = ${pessoa3.calcularIMC()}, Classificação: ${pessoa3.classificarIMC()}")
+}
+----
+<1> `Pessoa`: Classe que representa uma pessoa, com construtor primário recebendo nome, peso e altura.
+<2> `calcularIMC`: Função que calcula o IMC da pessoa.
+<3> `classificarIMC`: Função que retorna a classificação do IMC, utilizando `when` para determinar a faixa.
+<4> Cria instâncias de `Pessoa` com diferentes dados.
+<5> Imprime os resultados, utilizando string templates para formatar a saída.
+
+.Solução: Saída Esperada
+[,console]
+----
+João: IMC = 24.691358024691358, Classificação: Peso normal
+Maria: IMC = 23.875114784205696, Classificação: Peso normal
+Pedro: IMC = 32.6530612244898, Classificação: Obesidade grau 1
+----
+====
+
+=== Exemplo 2: Sistema de Biblioteca (Médio)
+
+Desenvolva um sistema simples de gerenciamento de biblioteca em Kotlin. O sistema deve:
+
+1.  Ter uma classe `Livro` com propriedades para título, autor e ano de publicação.
+2.  Ter uma classe `Biblioteca` que mantém uma lista de livros (usando `MutableList`).
+3.  Ter métodos na classe `Biblioteca` para:
+*   Adicionar um livro.
+*   Remover um livro pelo título.
+*   Buscar livros por autor.
+*   Listar todos os livros.
+4.  Utilizar funções de alta ordem (como `filter`, `forEach`) quando apropriado.
+5.  Demonstrar o uso das funcionalidades no `main`.
+
+.Clique para visualizar a solução
+[%collapsible]
+====
+.Solução
+[source,kotlin]
+----
+data class Livro(val titulo: String, val autor: String, val anoPublicacao: Int) // <1>
+
+class Biblioteca { // <2>
+    private val livros: MutableList<Livro> = mutableListOf() // <3>
+
+    fun adicionarLivro(livro: Livro) { // <4>
+        livros.add(livro)
+        println("Livro '${livro.titulo}' adicionado à biblioteca.")
+    }
+
+    fun removerLivro(titulo: String) { // <5>
+        val livroRemovido = livros.removeIf { it.titulo == titulo }
+        if (livroRemovido) {
+            println("Livro '$titulo' removido da biblioteca.")
+        } else {
+            println("Livro '$titulo' não encontrado na biblioteca.")
+        }
+    }
+
+    fun buscarLivrosPorAutor(autor: String): List<Livro> { // <6>
+        return livros.filter { it.autor == autor }
+    }
+
+    fun listarLivros() { // <7>
+        if (livros.isEmpty()) {
+            println("A biblioteca está vazia.")
+        } else {
+            println("Livros na biblioteca:")
+            livros.forEach { println("${it.titulo} - ${it.autor} (${it.anoPublicacao})") }
+        }
+    }
+}
+
+fun main() {
+    val biblioteca = Biblioteca() // <8>
+
+    biblioteca.adicionarLivro(Livro("A Arte da Guerra", "Sun Tzu", -500)) // <9>
+    biblioteca.adicionarLivro(Livro("Dom Casmurro", "Machado de Assis", 1899))
+    biblioteca.adicionarLivro(Livro("1984", "George Orwell", 1949))
+    biblioteca.adicionarLivro(Livro("O Pequeno Príncipe", "Antoine de Saint-Exupéry", 1943))
+    biblioteca.adicionarLivro(Livro("Cem Anos de Solidão", "Gabriel García Márquez", 1967))
+    biblioteca.adicionarLivro(Livro("Admirável Mundo Novo", "Aldous Huxley", 1932))
+
+    biblioteca.listarLivros()
+
+    println("\nBuscando livros por autor 'Machado de Assis':")
+    val livrosMachado = biblioteca.buscarLivrosPorAutor("Machado de Assis") // <10>
+    livrosMachado.forEach { println(it.titulo) }
+
+    biblioteca.removerLivro("1984") // <11>
+
+    println("\nLivros após remover '1984':")
+    biblioteca.listarLivros()
+}
+----
+<1> `Livro`: `data class` para representar um livro (gera automaticamente `equals`, `hashCode`, `toString`, etc.).
+<2> `Biblioteca`: Classe para gerenciar a coleção de livros.
+<3> `livros`: Lista mutável (`MutableList`) para armazenar os livros.
+<4> `adicionarLivro`: Adiciona um livro à lista.
+<5> `removerLivro`: Remove um livro pelo título (usando `removeIf` e um predicado).
+<6> `buscarLivrosPorAutor`: Busca livros por autor (usando `filter`).
+<7> `listarLivros`: Lista todos os livros (usando `forEach`).
+<8> Cria uma instância da `Biblioteca`.
+<9> Adiciona livros à biblioteca.
+<10> Busca livros de um determinado autor.
+<11> Remove um livro da biblioteca.
+
+.Solução: Saída Esperada
+[,console]
+----
+Livro 'A Arte da Guerra' adicionado à biblioteca.
+Livro 'Dom Casmurro' adicionado à biblioteca.
+Livro '1984' adicionado à biblioteca.
+Livro 'O Pequeno Príncipe' adicionado à biblioteca.
+Livro 'Cem Anos de Solidão' adicionado à biblioteca.
+Livro 'Admirável Mundo Novo' adicionado à biblioteca.
+Livros na biblioteca:
+A Arte da Guerra - Sun Tzu (-500)
+Dom Casmurro - Machado de Assis (1899)
+1984 - George Orwell (1949)
+O Pequeno Príncipe - Antoine de Saint-Exupéry (1943)
+Cem Anos de Solidão - Gabriel García Márquez (1967)
+Admirável Mundo Novo - Aldous Huxley (1932)
+
+Buscando livros por autor 'Machado de Assis':
+Dom Casmurro
+Livro '1984' removido da biblioteca.
+
+Livros após remover '1984':
+Livros na biblioteca:
+A Arte da Guerra - Sun Tzu (-500)
+Dom Casmurro - Machado de Assis (1899)
+O Pequeno Príncipe - Antoine de Saint-Exupéry (1943)
+Cem Anos de Solidão - Gabriel García Márquez (1967)
+Admirável Mundo Novo - Aldous Huxley (1932)
+----
+
+====
+
+=== Exemplo 3: Hierarquia de Animais com Comportamento Polimórfico (Avançado)
+
+Crie uma hierarquia de classes para representar diferentes tipos de animais. O sistema deve:
+
+1.  Ter uma classe abstrata `Animal` com propriedades para nome e idade, e um método abstrato `emitirSom`.
+2.  Ter classes concretas que herdam de `Animal` (por exemplo, `Cachorro`, `Gato`, `Vaca`), implementando o método `emitirSom` de forma específica para cada animal.
+3.  Ter uma interface `Amamentador` com um método `amamentar`.
+4.  Fazer com que as classes `Cachorro`, `Gato` e `Vaca` implementem a interface `Amamentador`.
+5.  Ter uma classe `Zoologico` que mantém uma lista de `Animal`.
+6.  Ter métodos em `Zoologico` para:
+* Adicionar um animal.
+* Listar todos os animais, mostrando seu nome, idade e o som que emitem.
+* Fazer todos os mamíferos (animais que implementam `Amamentador`) amamentarem.
+
+.Clique para visualizar a solução
+[%collapsible]
+====
+.Solução
+[source,kotlin]
+----
+abstract class Animal(val nome: String, val idade: Int) { // <1>
+    abstract fun emitirSom(): String // <2>
+}
+
+interface Amamentador { // <3>
+    fun amamentar()
+}
+
+class Cachorro(nome: String, idade: Int) : Animal(nome, idade), Amamentador { // <4>
+    override fun emitirSom(): String {
+        return "Au au"
+    }
+
+    override fun amamentar() {
+        println("$nome está amamentando seus filhotes.")
+    }
+}
+
+class Gato(nome: String, idade: Int) : Animal(nome, idade), Amamentador { // <5>
+    override fun emitirSom(): String {
+        return "Miau"
+    }
+
+    override fun amamentar() {
+        println("$nome está amamentando seus filhotes.")
+    }
+}
+
+class Vaca(nome: String, idade: Int) : Animal(nome, idade), Amamentador{ // <6>
+    override fun emitirSom(): String {
+        return "Muuu"
+    }
+     override fun amamentar() {
+        println("$nome está sendo ordenhada/amamentando.")
+    }
+}
+
+class Zoologico { // <7>
+    private val animais: MutableList<Animal> = mutableListOf() // <8>
+
+    fun adicionarAnimal(animal: Animal) {
+        animais.add(animal)
+        println("${animal.nome} foi adicionado ao zoológico.")
+    }
+
+    fun listarAnimais() {
+        println("Animais no zoológico:")
+        animais.forEach { println("${it.nome} (${it.idade} anos): ${it.emitirSom()}") } // <9>
+    }
+
+    fun amamentarMamiferos() { // <10>
+        println("Amamentando os mamíferos:")
+        animais.filterIsInstance<Amamentador>().forEach { it.amamentar() } // <11>
+    }
+}
+fun main() {
+    val zoologico = Zoologico()
+
+    zoologico.adicionarAnimal(Cachorro("Rex", 3)) // <12>
+    zoologico.adicionarAnimal(Gato("Mia", 2))
+    zoologico.adicionarAnimal(Vaca("Mimosa", 5))
+
+    zoologico.listarAnimais()
+
+    println()
+    zoologico.amamentarMamiferos()
+}
+----
+
+<1> `Animal`: Classe abstrata que serve como base para os animais.  Não pode ser instanciada diretamente.
+<2> `emitirSom`: Método abstrato (sem implementação) que deve ser implementado pelas subclasses.
+<3> `Amamentador`: Interface que define o comportamento de amamentar.
+<4> `Cachorro`: Subclasse concreta de `Animal`, implementa `emitirSom` e `Amamentador`.
+<5> `Gato`: Subclasse concreta de `Animal`, implementa `emitirSom` e `Amamentador`.
+<6> `Vaca`: Subclasse concreta de `Animal`, implementa `emitirSom` e `Amamentador`.
+<7> `Zoologico`: Classe para gerenciar a coleção de animais.
+<8> `animais`: Lista mutável de `Animal`.  Observe que a lista pode conter objetos de diferentes subclasses de `Animal` (polimorfismo).
+<9> `listarAnimais`: Lista todos os animais, chamando o método `emitirSom` de cada um (polimorfismo).
+<10> `amamentarMamiferos`: Chama o método `amamentar` em todos os animais que implementam a interface `Amamentador`.
+<11> `filterIsInstance<Amamentador>()`: Filtra a lista de animais, selecionando apenas aqueles que são instâncias de `Amamentador` (ou seja, apenas os mamíferos).
+<12> Cria instâncias de diferentes animais e os adiciona ao zoológico.
+
+.Solução: Saída Esperada
+[,console]
+----
+Rex foi adicionado ao zoológico.
+Mia foi adicionado ao zoológico.
+Mimosa foi adicionado ao zoológico.
+Animais no zoológico:
+Rex (3 anos): Au au
+Mia (2 anos): Miau
+Mimosa (5 anos): Muuu
+
+Amamentando os mamíferos:
+Rex está amamentando seus filhotes.
+Mia está amamentando seus filhotes.
+Mimosa está sendo ordenhada/amamentando.
+----
+
+====
