@@ -1404,3 +1404,79 @@ Mimosa está sendo ordenhada/amamentando.
 ----
 
 ====
+
+== Para praticar
+
+Para praticar os conceitos apresentados neste capítulo, você pode tentar resolver os seguintes problemas:
+
+=== Exercício 1: Verificação de Intervalo
+
+Crie um programa em Kotlin que solicita ao usuário um número inteiro como entrada. O programa deve então verificar se o número fornecido está dentro do intervalo de 1 a 100 (inclusive).  Se o número estiver dentro do intervalo, o programa deve imprimir uma mensagem indicando isso. Caso contrário, o programa deve imprimir uma mensagem informando que o número está fora do intervalo.  Lembre-se de lidar com entradas inválidas, como texto em vez de números.
+
+=== Exercício 2: Classificação de Notas
+
+Desenvolva um programa em Kotlin que recebe a nota de um aluno como entrada (um número de ponto flutuante).  O programa deve classificar o aluno conforme a seguinte tabela:
+
+[cols="1,1",options="header"]
+|===
+| Faixa de Nota | Classificação
+
+| Nota >= 90
+| Excelente
+
+| 70 \<= Nota < 90
+| Bom
+
+| 50 \<= Nota < 70
+| Regular
+
+| Nota < 50
+| Reprovado
+|===
+
+O programa deve imprimir a classificação do aluno com base na nota fornecida. Trate também possíveis entradas inválidas, como texto no lugar de um número.
+
+=== Exercício 3: Soma de Elementos em uma Lista
+
+Desenvolva um programa Kotlin que cria uma lista imutável (usando `listOf`) de números inteiros.  O programa deve então calcular a soma de todos os elementos presentes na lista e imprimir o resultado.  Explore a documentação da função `listOf` e a função `sum` para listas em Kotlin.
+
+=== Exercício 4: Verificação de Elemento em uma Lista de Strings
+
+Desenvolva um programa que inicializa uma lista imutável de strings (utilizando `listOf`).  O programa deve então solicitar ao usuário uma string como entrada.  Verifique se a string fornecida pelo usuário está presente na lista.  Imprima uma mensagem indicando se a string foi encontrada ou não na lista.
+
+=== Exercício 5: Quantidade em Estoque
+
+Desenvolva um programa Kotlin que utiliza um mapa para representar o estoque de uma loja.  As chaves do mapa devem ser strings representando os nomes dos produtos, e os valores devem ser inteiros representando a quantidade de cada produto em estoque.  O programa deve então solicitar ao usuário o nome de um produto.  Exiba a quantidade desse produto em estoque, ou uma mensagem informando que o produto não está no estoque, caso ele não seja encontrado no mapa.  Considere o uso do operador elvis (?:) para fornecer um valor padrão quando a chave não for encontrada.
+
+=== Exercício 6: Remoção de Duplicatas
+
+Desenvolva um programa em Kotlin que inicializa uma lista de inteiros com elementos duplicados.  O programa deve então remover as duplicatas da lista, de forma que cada elemento apareça apenas uma vez.  Imprima a lista original com as duplicatas e, em seguida, imprima a lista resultante sem as duplicatas.  Pesquise sobre a função `distinct` para realizar essa operação.
+
+=== Exercício 7: Cálculo de Média
+
+Desenvolva um programa que solicita ao usuário uma sequência de números inteiros separados por espaços.  O programa deve calcular a média dos números fornecidos e imprimir o resultado.  Considere o uso da função `split` para dividir a entrada do usuário em uma lista de strings, e a função `map` para converter os números de strings para inteiros.
+
+=== Exercício 8: Sistema de Gerenciamento de Livraria
+
+Crie um sistema de gerenciamento de livraria em Kotlin usando conceitos de orientação a objetos. O sistema deve permitir o cadastro de autores (nome, nacionalidade),  cadastro de livros (título, autor, ISBN, ano de publicação, gênero), controle de estoque (adicionar livros ao estoque, remover livros do estoque, verificar quantidade em estoque) e consulta de livros por autor, título ou gênero. Implemente as classes `Autor`, `Livro` e `Estoque`.  _Não é necessário implementar a funcionalidade de empréstimo de livros para este exercício._
+
+**Sugestão:**
+
+* **Classe `Autor`**:  Propriedades para nome e nacionalidade.  Sobrescreva o método `toString()` para exibir informações do autor de forma legível.
+
+* **Classe `Livro`**: Propriedades para título, autor (uma instância da classe `Autor`), ISBN, ano de publicação e gênero.  Sobrescreva o método `toString()` para exibir informações do livro de forma legível.
+
+* **Classe `Estoque`**: Utilize um `MutableMap` onde a chave é o `Livro` e o valor é a quantidade em estoque. Implemente métodos para adicionar livros ao estoque (aumentando a quantidade se o livro já existir), remover livros do estoque (decrementando a quantidade e removendo o livro do mapa se a quantidade chegar a zero), verificar a quantidade de um livro específico em estoque e consultar livros por autor, título ou gênero (retornando uma lista de livros que correspondem ao critério de busca).
+
+=== Exercício 9: Implementação do Jogo da Velha
+
+Crie um programa em Kotlin que implemente o jogo da velha para dois jogadores no console. O programa deve exibir o tabuleiro no console, permitir que os jogadores façam suas jogadas alternadamente informando as coordenadas da posição desejada (linha e coluna), e verificar se há um vencedor ou empate a cada jogada.  O jogo deve continuar até que haja um vencedor ou o tabuleiro esteja cheio.  A interação com o usuário deve ser feita exclusivamente via console.
+
+Represente o tabuleiro como uma matriz 3x3 (ou uma lista de listas).  Utilize funções para exibir o tabuleiro no console, validar as jogadas (verificando se a posição é válida e está vazia), verificar o vencedor (horizontal, vertical e diagonais) e verificar se houve empate.  Crie um loop principal para controlar o fluxo do jogo, solicitando as jogadas dos jogadores via `readLine()` e atualizando o tabuleiro.  Considere usar enums ou constantes para representar os jogadores (X e O).  Lide com entradas inválidas do usuário, como coordenadas fora dos limites ou posições já ocupadas.
+
+== Referências
+
+Links úteis para aprofundar o conhecimento sobre os tópicos abordados neste capítulo:
+
+* https://kotlinlang.org/docs/home.html[]
+* https://play.kotlinlang.org/byExample/overview[]
