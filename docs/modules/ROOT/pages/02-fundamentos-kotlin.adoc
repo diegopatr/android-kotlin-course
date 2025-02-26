@@ -3,7 +3,7 @@
 Kotlin é uma linguagem de programação moderna, concisa e poderosa, desenvolvida pela JetBrains.
 Ela foi projetada para ser totalmente interoperável com Java, o que significa que código Kotlin e Java podem coexistir e interagir no mesmo projeto.
 Kotlin é uma linguagem estaticamente tipada, o que ajuda a evitar erros em tempo de compilação, e possui inferência de tipos, tornando o código mais limpo e legível.
-Seus princípios básicos visam aumentar a produtividade do desenvolvedor e minimizar a ocorrência de erros.
+Os seus princípios básicos visam aumentar a produtividade do desenvolvedor e minimizar a ocorrência de erros.
 
 == Conceitos Básicos
 
@@ -81,8 +81,9 @@ Isso permite especificar os argumentos em qualquer ordem e melhora a legibilidad
 Kotlin distingue claramente entre variáveis mutáveis e imutáveis.
 A inferência de tipos do Kotlin permite que o compilador determine o tipo da variável com base no valor atribuído, reduzindo a verbosidade do código.
 
-=== Declarando Variáveis
+=== Declaração de Variáveis
 
+.Exemplo: Declaração de Variáveis
 [source,kotlin]
 ----
 var a: String = "inicial"  // <1>
@@ -102,6 +103,7 @@ Recomenda-se usar `val` sempre que possível, promovendo a imutabilidade e torna
 
 === Inicialização Condicional e Variáveis Não Inicializadas
 
+.Exemplo: Inicialização de Variáveis
 [source,kotlin]
 ----
 // var e: Int  // <1>
@@ -173,6 +175,7 @@ Para acessar membros de uma variável anulável, você tem algumas opções:
 
 * **Verificação explícita de nulidade:**
 
+.Exemplo: Verificação explícita de nulidade
 [source,kotlin]
 ----
 if (nullable != null) {
@@ -182,6 +185,7 @@ if (nullable != null) {
 
 * **Chamada segura (`?.`):**
 
+.Exemplo: Chamada Segura Utilizando Operador `?`
 [source,kotlin]
 ----
 println(nullable?.length) // Imprime o comprimento se nullable não for null, caso contrário, imprime null.
@@ -190,6 +194,7 @@ O operador `?.` permite acessar um membro (ou chamar um método) somente se a va
 
 * **Operador Elvis (`?:`):**
 
+.Exemplo: Operador Elvis `?:`
 [source,kotlin]
 ----
 val length = nullable?.length ?: 0 // Se nullable?.length for null, usa o valor 0.
@@ -255,8 +260,7 @@ Kotlin suporta herança de classes, permitindo criar hierarquias de classes e re
 Por padrão, as classes em Kotlin são `final` (não podem ser herdadas).
 Para permitir que uma classe seja herdada, é necessário usar o modificador `open`.
 
-=== Exemplo Básico de Herança
-
+.Exemplo: Visão Geral de Herança
 [source,kotlin]
 ----
 open class Dog {                // <1>
@@ -289,6 +293,7 @@ O polimorfismo permite tratar objetos de diferentes classes de forma uniforme co
 
 === Herança com Construtor com Parâmetros
 
+.Exemplo: Herança com Construtor com Parâmetros
 [source,kotlin]
 ----
 open class Tiger(val origin: String) {
@@ -310,6 +315,7 @@ A chamada ao construtor da superclasse `Tiger("Sibéria")` passa o valor "Sibér
 
 === Passando Argumentos para o Construtor da Superclasse
 
+.Exemplo: Passando Argumentos para o Construtor da Superclasse
 [source,kotlin]
 ----
 open class Lion(val name: String, val origin: String) {
@@ -1087,7 +1093,7 @@ fun main() {
 
 A seguir, são apresentados três exemplos de código em Kotlin, com níveis de complexidade crescente, demonstrando diversos recursos da linguagem.
 
-=== Exemplo 1: Cálculo de IMC (Fácil)
+=== Exemplo 1: Cálculo de IMC (Iniciante)
 
 Crie um programa em Kotlin que calcule o Índice de Massa Corporal (IMC) de uma pessoa. O programa deve:
 
@@ -1109,6 +1115,9 @@ Crie um programa em Kotlin que calcule o Índice de Massa Corporal (IMC) de uma 
 
 4. Criar instâncias da classe `Pessoa` no `main` e imprimir o nome, IMC e classificação de cada pessoa.
 
+.Clique para visualizar a solução
+[%collapsible]
+====
 .Solução
 [source,kotlin]
 ----
@@ -1147,7 +1156,16 @@ fun main() {
 <4> Cria instâncias de `Pessoa` com diferentes dados.
 <5> Imprime os resultados, utilizando string templates para formatar a saída.
 
-=== Exemplo 2: Sistema de Biblioteca
+.Solução: Saída Esperada
+[,console]
+----
+João: IMC = 24.691358024691358, Classificação: Peso normal
+Maria: IMC = 23.875114784205696, Classificação: Peso normal
+Pedro: IMC = 32.6530612244898, Classificação: Obesidade grau 1
+----
+====
+
+=== Exemplo 2: Sistema de Biblioteca (Médio)
 
 Desenvolva um sistema simples de gerenciamento de biblioteca em Kotlin. O sistema deve:
 
@@ -1161,6 +1179,9 @@ Desenvolva um sistema simples de gerenciamento de biblioteca em Kotlin. O sistem
 4.  Utilizar funções de alta ordem (como `filter`, `forEach`) quando apropriado.
 5.  Demonstrar o uso das funcionalidades no `main`.
 
+.Clique para visualizar a solução
+[%collapsible]
+====
 .Solução
 [source,kotlin]
 ----
@@ -1231,7 +1252,39 @@ fun main() {
 <10> Busca livros de um determinado autor.
 <11> Remove um livro da biblioteca.
 
-=== Exemplo 3: Hierarquia de Animais com Comportamento Polimórfico
+.Solução: Saída Esperada
+[,console]
+----
+Livro 'A Arte da Guerra' adicionado à biblioteca.
+Livro 'Dom Casmurro' adicionado à biblioteca.
+Livro '1984' adicionado à biblioteca.
+Livro 'O Pequeno Príncipe' adicionado à biblioteca.
+Livro 'Cem Anos de Solidão' adicionado à biblioteca.
+Livro 'Admirável Mundo Novo' adicionado à biblioteca.
+Livros na biblioteca:
+A Arte da Guerra - Sun Tzu (-500)
+Dom Casmurro - Machado de Assis (1899)
+1984 - George Orwell (1949)
+O Pequeno Príncipe - Antoine de Saint-Exupéry (1943)
+Cem Anos de Solidão - Gabriel García Márquez (1967)
+Admirável Mundo Novo - Aldous Huxley (1932)
+
+Buscando livros por autor 'Machado de Assis':
+Dom Casmurro
+Livro '1984' removido da biblioteca.
+
+Livros após remover '1984':
+Livros na biblioteca:
+A Arte da Guerra - Sun Tzu (-500)
+Dom Casmurro - Machado de Assis (1899)
+O Pequeno Príncipe - Antoine de Saint-Exupéry (1943)
+Cem Anos de Solidão - Gabriel García Márquez (1967)
+Admirável Mundo Novo - Aldous Huxley (1932)
+----
+
+====
+
+=== Exemplo 3: Hierarquia de Animais com Comportamento Polimórfico (Avançado)
 
 Crie uma hierarquia de classes para representar diferentes tipos de animais. O sistema deve:
 
@@ -1245,6 +1298,9 @@ Crie uma hierarquia de classes para representar diferentes tipos de animais. O s
 * Listar todos os animais, mostrando seu nome, idade e o som que emitem.
 * Fazer todos os mamíferos (animais que implementam `Amamentador`) amamentarem.
 
+.Clique para visualizar a solução
+[%collapsible]
+====
 .Solução
 [source,kotlin]
 ----
@@ -1330,3 +1386,21 @@ fun main() {
 <11> `filterIsInstance<Amamentador>()`: Filtra a lista de animais, selecionando apenas aqueles que são instâncias de `Amamentador` (ou seja, apenas os mamíferos).
 <12> Cria instâncias de diferentes animais e os adiciona ao zoológico.
 
+.Solução: Saída Esperada
+[,console]
+----
+Rex foi adicionado ao zoológico.
+Mia foi adicionado ao zoológico.
+Mimosa foi adicionado ao zoológico.
+Animais no zoológico:
+Rex (3 anos): Au au
+Mia (2 anos): Miau
+Mimosa (5 anos): Muuu
+
+Amamentando os mamíferos:
+Rex está amamentando seus filhotes.
+Mia está amamentando seus filhotes.
+Mimosa está sendo ordenhada/amamentando.
+----
+
+====
