@@ -1,0 +1,911 @@
+= Introdução ao Desenvolvimento de Apps Android com Jetpack Compose
+
+Este capítulo visa apresentar os fundamentos do Jetpack Compose, a moderna ferramenta da Google para o desenvolvimento de interfaces gráficas nativas Android. Discutiremos as principais vantagens do Compose em comparação ao sistema Android View e como ele pode acelerar o processo de desenvolvimento, simplificar a manutenção do código e proporcionar uma abordagem mais intuitiva para construir a UI.
+
+== Introdução ao Jetpack Compose
+
+=== O que é Jetpack Compose?
+
+O Jetpack Compose é a biblioteca moderna da Google projetada para facilitar o desenvolvimento de UIs nativas no Android. Ao adotar uma abordagem declarativa, o Compose oferece uma maneira simplificada e intuitiva de criar layouts e componentes para aplicativos, integrando de forma eficiente a lógica e a interface.
+
+=== Conceitos-chave
+1. **API Declarativa**: Você descreve o que deseja na sua interface, e o Compose cuida de renderizá-la corretamente.
+2. **Integração Kotlin**: Todo o código é escrito diretamente em Kotlin, eliminando a necessidade de alternar entre arquivos Kotlin e XML.
+3. **Componentes Reutilizáveis**: Componentes são criados de forma modular, facilitando sua reutilização em diferentes partes do aplicativo.
+
+== Vantagens do Jetpack Compose
+O Compose apresenta diversas vantagens em comparação à abordagem tradicional baseada no sistema Android View.
+
+=== Menos Código
+- Escrever menos código resulta em:
+.. Redução do tempo de desenvolvimento.
+.. Menor propensão a erros e bugs.
+.. Facilidade na leitura, manutenção e revisão do código.
+- Estudos de casos revelaram que componentes criados com Compose requerem significativamente menos linhas de código.
+- Um exemplo comum é a implementação de botões ou listas, que requerem apenas uma fração das linhas de código necessárias no modelo tradicional.
+
+=== Intuitividade
+- A abordagem declarativa do Compose permite que você se concentre na estrutura lógica da interface.
+- APIs mais simples e intuitivas tornam o aprendizado e o uso acessíveis até para desenvolvedores iniciantes.
+- A unificação de temáticas (theming) no Compose evita a dependência de múltiplos arquivos XML, tornando o processo mais legível e organizado.
+
+=== Aceleração do Desenvolvimento
+- O Compose é compatível com o ecossistema Android já existente, permitindo integração com componentes como `ViewModel`, `LiveData`, coroutines, entre outros.
+- Recursos avançados no Android Studio, como pré-visualizações ao vivo e suporte a diferentes estados de UI, aceleram o ciclo de desenvolvimento e entrega de software.
+
+== Integração com o Ecossistema Android
+Uma das grandes vantagens do Compose é sua interoperabilidade. Desenvolvedores podem migrar gradativamente o código de suas aplicações, mantendo compatibilidade com componentes legados baseados no sistema Android View.
+
+=== Exemplos de Integração:
+- Misturar visualizações tradicionais com novos componentes Compose.
+- Utilizar bibliotecas já existentes como Navigation, Coroutines e ViewModel.
+- Adotar o Compose para temas e suporte automático a modos claro e escuro.
+
+== Dicas e Boas Práticas no Uso do Compose
+1. **Manutenção do Estado:** Torne o estado explícito e centralizado para facilitar a manutenção e evitar inconsistências.
+2. **Reutilização de Componentes:** Crie componentes modulares, focados em funcionalidade específica e reutilizáveis.
+3. **Teste de Interfaces:** Utilize previews no Android Studio para validar diferentes cenários e comportamentos da interface.
+
+=== Comparação com XML
+
+Jetpack Compose oferece diversas vantagens em relação ao uso de XML para construção de interfaces no Android.
+Vamos explorar algumas dessas vantagens com exemplos práticos:
+
+1. **Menor número de linhas de código:**
+Com o Compose, a interface e o comportamento podem ser definidos na mesma função, enquanto no XML era necessário criar múltiplos arquivos e ligá-los via código.
+
+- Exemplo com XML:
++
+```xml
+<!-- activity_main.xml -->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/tvGreeting"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Olá, Mundo!" />
+
+    <Button
+        android:id="@+id/btnExample"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Clique aqui" />
+</LinearLayout>
+```
++
+```kotlin
+// MainActivity.kt
+val textView: TextView = findViewById(R.id.tvGreeting)
+textView.text = "Olá, Mundo!"
+```
+
+- Com Jetpack Compose:
++
+```kotlin
+@Composable
+fun GreetingScreen() {
+    Column {
+        Text("Olá, Mundo!")
+        Button(onClick = { /* ação aqui */ }) {
+            Text("Clique aqui")
+        }
+    }
+}
+```
+
+2. **Ciclo de iteração mais rápido (**Hot Reload/Preview):** Com XML, mudanças na interface requeriam reconstruções mais lentas no emulador/dispositivo.
+
+- XML: Altere um atributo no XML → Aguarde o build do projeto → Execute o app → Verifique o resultado.
+
+- Jetpack Compose: Altere o código → Visualize instantaneamente na **Compose Preview** ou com **Hot Reload** no dispositivo.
+
+3. **Alto nível de personalização:**
+Com XML, personalizar componentes muitas vezes exigia o uso de arquivos `drawable` ou a criação de `Custom Views`.
+
+- Exemplo com XML:
++
+```xml
+<TextView
+    android:id="@+id/tvStyledText"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="Texto estilizado"
+    android:padding="16dp"
+    android:background="@color/light_gray" />
+```
+
+- Com Jetpack Compose:
++
+```kotlin
+Text(
+    text = "Texto estilizado",
+    modifier = Modifier
+        .padding(16.dp)
+        .background(Color.LightGray)
+)
+```
+
+Como podemos observar, Jetpack Compose centraliza e simplifica o desenvolvimento de interfaces, eliminando a dependência do XML e permitindo maior integração entre a lógica e a interface.
+
+== Configurando o Projeto
+
+1. **Criar um novo projeto no Android Studio:**
+- Escolha **Empty Activity** ao criar o projeto.
+- O Android Studio irá configurar automaticamente as dependências necessárias no `build.gradle`.
+
+```kotlin
+// build.gradle (app)
+dependencies {
+
+    val composeBom = platform("androidx.compose:compose-bom:2025.02.00")
+    implementation(composeBom)
+    androidTestImplementation(composeBom)
+
+    // Choose one of the following:
+    // Material Design 3
+    implementation("androidx.compose.material3:material3")
+    // or Material Design 2
+    implementation("androidx.compose.material:material")
+    // or skip Material Design and build directly on top of foundational components
+    implementation("androidx.compose.foundation:foundation")
+    // or only import the main APIs for the underlying toolkit systems,
+    // such as input and measurement/layout
+    implementation("androidx.compose.ui:ui")
+
+    // Android Studio Preview support
+    implementation("androidx.compose.ui:ui-tooling-preview")
+    debugImplementation("androidx.compose.ui:ui-tooling")
+
+    // UI Tests
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
+
+    // Optional - Included automatically by material, only add when you need
+    // the icons but not the material library (e.g. when using Material3 or a
+    // custom design system based on Foundation)
+    implementation("androidx.compose.material:material-icons-core")
+    // Optional - Add full set of material icons
+    implementation("androidx.compose.material:material-icons-extended")
+    // Optional - Add window size utils
+    implementation("androidx.compose.material3.adaptive:adaptive")
+
+    // Optional - Integration with activities
+    implementation("androidx.activity:activity-compose:1.10.0")
+    // Optional - Integration with ViewModels
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.5")
+    // Optional - Integration with LiveData
+    implementation("androidx.compose.runtime:runtime-livedata")
+    // Optional - Integration with RxJava
+    implementation("androidx.compose.runtime:runtime-rxjava2")
+
+}
+```
+
+== Mudança de Paradigma no Desenvolvimento com Jetpack Compose
+
+Com o Jetpack Compose, o desenvolvimento de interfaces gráficas no Android adota um paradigma declarativo e orientado a componentes. Essa abordagem contrasta com o paradigma imperativo utilizado pelo sistema Android View, introduzindo conceitos e práticas que demandam uma mudança na forma de pensar e estruturar a interface do usuário.
+
+Nesta seção, exploraremos os principais conceitos associados a essa mudança de paradigma: **árvore de componentes**, **composição de funções**, **paradigma declarativo**, **fluxo de dados** e **recomposição**.
+
+=== Árvore de Componentes (Component Tree)
+No Jetpack Compose, a interface do usuário é definida como uma hierarquia de componentes dispostos em uma estrutura de árvore. Essa estrutura reflete como os elementos da UI estão organizados e interconectados.
+
+**Explicação:**
+- Cada componente da interface é um "nó" na árvore.
+- A árvore é construída a partir de funções chamadas **composables**, que representam componentes individuais.
+- Componentes podem ser aninhados, pois uma função composable pode chamar outras composables.
+
+*Exemplo de Árvore de Componentes:*
+
+```kotlin
+@Composable
+fun MyScreen() {
+    Column { // Nó pai
+        Text("Título da Página") // Nó filho 1
+        Button(onClick = { /* ação */ }) { // Nó filho 2
+            Text("Clique aqui") // Filho do botão
+        }
+    }
+}
+```
+
+Na árvore acima:
+- `Column` é o nó raiz que organiza os filhos verticalmente.
+- Os nós filhos são `Text` e `Button`, que por sua vez contém outro `Text`.
+
+O conceito de árvore de componentes facilita o raciocínio sobre como a interface será renderizada e as relações hierárquicas entre os elementos.
+
+=== Composição de Funções (Function Composition)
+O Jetpack Compose utiliza o conceito de **funções composables** (decoradas com a anotação `@Composable`) para definir componentes reutilizáveis da interface. A composição dessas funções permite a construção de interfaces complexas a partir de elementos simples.
+
+**Principais características:**
+- Cada função `@Composable` desenha uma parte específica da interface.
+- Funções composables podem ser combinadas livremente, promovendo a reutilização.
+- O uso de funções simplifica o código, tornando-o modular e fácil de entender.
+
+*Exemplo de Composição de Funções:*
+
+```kotlin
+@Composable
+fun Title(text: String) {
+    Text(text, style = MaterialTheme.typography.h4)
+}
+
+@Composable
+fun ActionButton(onClick: () -> Unit, label: String) {
+    Button(onClick = onClick) {
+        Text(label)
+    }
+}
+
+@Composable
+fun MainScreen() {
+    Column {
+        Title("Bem-vindo ao App") // Composição
+        ActionButton(onClick = { /* ação */ }, label = "Começar")
+    }
+}
+```
+
+Neste exemplo, a função `MainScreen` combina as funções `Title` e `ActionButton`, compondo a árvore de interface de maneira clara e reutilizável.
+
+=== Paradigma Declarativo
+Um dos aspectos mais inovadores do Jetpack Compose é sua abordagem declarativa. Diferentemente do paradigma imperativo, no qual o desenvolvedor instrui passo a passo como cada elemento da UI deve ser manipulado, o paradigma declarativo foca em **descrever o estado desejado da interface**.
+
+**Características do paradigma declarativo:**
+1. A interface é uma função direta do estado da aplicação.
+2. Você descreve *o que* exibir na interface, enquanto o Compose cuida de *como* renderizá-la.
+3. Simplifica a lógica de atualização da UI, eliminando a necessidade de manipulação direta de elementos.
+
+*Comparação:*
+- Paradigma imperativo: "Crie um botão, altere o texto do botão quando o usuário clicar."
+- Paradigma declarativo: "Se o estado for 'ativo', exiba este botão com texto 'Iniciar'."
+
+*Exemplo Declarativo:*
+
+```kotlin
+@Composable
+fun Greeting(name: String) {
+    Text("Olá, $name!")
+}
+
+@Composable
+fun GreetingScreen(isLoggedIn: Boolean) {
+    if (isLoggedIn) {
+        Greeting("Usuário ativo")
+    } else {
+        Greeting("Visitante")
+    }
+}
+```
+
+Neste exemplo, a interface muda com base no estado `isLoggedIn`, e o Compose cuida automaticamente das atualizações sem que o desenvolvedor precise manipular diretamente os elementos da UI.
+
+=== Fluxo de Dados Unidirecional (Unidirectional Data Flow - UDF)
+O fluxo de dados em aplicações que utilizam Jetpack Compose segue o modelo unidirecional, no qual o estado da aplicação flui em apenas uma direção: **do estado para a UI**.
+
+**Fluxo típico:**
+1. O estado é armazenado em um objeto (geralmente um `ViewModel` ou `State`).
+2. A interface do usuário é reconstruída com base no estado atual.
+3. Os eventos da interface (como cliques) acionam atualizações no estado.
+
+*Exemplo de Fluxo de Dados:*
+
+```kotlin
+@Composable
+fun CounterScreen(counter: Int, onIncrement: () -> Unit) {
+    Column {
+        Text("Contador: $counter")
+        Button(onClick = onIncrement) {
+            Text("Incrementar")
+        }
+    }
+}
+```
+
+Nesse exemplo:
+1. O estado `counter` é passado para o composable `CounterScreen`.
+2. A interface é desenhada com base no estado `counter`.
+3. O botão aciona a função `onIncrement`, que atualiza o estado na camada lógica.
+
+=== Recomposição
+O conceito de **recomposição** é central no Jetpack Compose. Quando o estado declarado em um composable muda, a função é **reexecutada** para reconstruir a interface com base no novo estado.
+
+**Por que a recomposição é importante?**
+- Ela garante que a UI está sempre atualizada com os dados mais recentes.
+- O Compose otimiza o processo, atualizando apenas os componentes necessários, sem recriar toda a interface.
+
+*Exemplo de Recomposição:*
+
+```kotlin
+@Composable
+fun Counter() {
+    var count by remember { mutableStateOf(0) } // Estado mutável
+
+    Column {
+        Text("Contagem: $count")
+        Button(onClick = { count++ }) {
+            Text("Incrementar")
+        }
+    }
+}
+```
+
+Neste exemplo:
+1. O estado `count` determina o valor exibido no `Text`.
+2. Quando o botão é clicado, o estado muda (`count++`), acionando a recomposição.
+3. O Compose atualiza apenas o `Text`, mantendo outros componentes intactos.
+
+=== 1. Gerenciamento de Estado no Jetpack Compose
+
+O estado é um conceito central no paradigma declarativo do Compose. No SDK 34, o gerenciamento de estado foi aprimorado com recomendações explícitas de desacoplamento entre o estado empresarial (na *(business logic)*) e o estado da IU *(UI state)*, promovendo boas práticas escaláveis.
+
+==== O que é Estado no Compose?
+- O **estado** representa os dados que controlam o conteúdo da IU.
+- Alterações no estado acionam **recomposições**, garantindo que a IU esteja sempre sincronizada com os dados.
+- No Android SDK 34, recomenda-se o uso de `StateFlow` ou `LiveData` para estado externo quando integrado com ViewModel.
+
+==== Exemplo de Gerenciamento de Estado Interno:
+```kotlin
+@Composable
+fun CounterScreen() {
+    var count by rememberSaveable { mutableStateOf(0) } // Estado persistente em recomposições e recriações
+    Column(
+        modifier = Modifier.padding(16.dp)
+    ) {
+        Text(
+            text = "Contador: $count",
+            style = MaterialTheme.typography.titleLarge
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Button(
+            onClick = { count++ },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Incrementar")
+        }
+    }
+}
+```
+
+*Notas sobre o exemplo:*
+- `rememberSaveable` foi usado para preservar o estado em mudanças de configuração (e.g., rotação de tela).
+- A interface (UI) se atualiza automaticamente sempre que o valor de `count` muda.
+
+==== Exemplo de Estado Externo com ViewModel:
+```kotlin
+class CounterViewModel : ViewModel() {
+    private val _count = MutableStateFlow(0) // Estado exposto com StateFlow
+    val count: StateFlow<Int> = _count
+
+    fun increment() {
+        _count.value += 1
+    }
+}
+
+@Composable
+fun CounterScreenWithViewModel(viewModel: CounterViewModel = viewModel()) {
+    val count by viewModel.count.collectAsState() // Observa o estado reativo
+    Column(
+        modifier = Modifier.padding(16.dp)
+    ) {
+        Text(
+            text = "Contador: $count",
+            style = MaterialTheme.typography.titleLarge
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Button(
+            onClick = { viewModel.increment() },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Incrementar")
+        }
+    }
+}
+```
+
+*Notas sobre o exemplo:*
+- O `StateFlow` da camada ViewModel organiza o estado empresarial.
+- Recomenda-se essa abordagem para aplicativos com arquiteturas baseadas no padrão **MVVM**.
+
+=== 2. Efeitos no Compose (Side Effects)
+Os efeitos permitem controlar partes do código que requerem interação com sistemas externos ou que têm dependências em mudanças específicas de coisas como ciclo de vida.
+
+==== Principais APIs de Efeitos:
+1. `remember` - Memoriza e reutiliza valores.
+2. `LaunchedEffect` - Executa código suspenso associado a mudanças de estado.
+3. `DisposableEffect` - Configura e limpa recursos associados ao ciclo de vida da aplicação.
+4. `SideEffect` - Executa código sincronizado com a recomposição.
+
+==== Exemplo de `LaunchedEffect`:
+```kotlin
+@Composable
+fun FetchDataScreen() {
+    val context = LocalContext.current
+    var data by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(Unit) {
+        data = fetchData(context) // Função suspensa simulando uma operação de rede
+    }
+
+    if (data == null) {
+        CircularProgressIndicator()
+    } else {
+        Text("Dados carregados: $data")
+    }
+}
+
+suspend fun fetchData(context: Context): String {
+    delay(2000) // Simula tempo de carregamento
+    return "Conteúdo recebido do servidor"
+}
+```
+
+No exemplo acima:
+- `LaunchedEffect` garante que o carregamento ocorra apenas uma vez ao entrar na composição.
+- Essa prática é muito útil ao lidar com operações assíncronas como chamadas a APIs.
+
+=== 3. Desempenho e Otimizações
+Novas práticas foram fortalecidas na versão 34 para garantir o desempenho das composições complexas, evitando desperdícios de recursos computacionais.
+
+==== Práticas Recomendadas:
+- **Skipping:** Composables são reconstruídos apenas se o estado que eles observam mudar.
+- **Keys em LazyLists:** `key` é necessário em listas grandes para evitar recomposições desnecessárias.
+
+==== Exemplo com LazyColumn:
+```kotlin
+@Composable
+fun ItemList(items: List<String>) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        items(items, key = { it }) { item ->
+            Text(
+                text = item,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(8.dp)
+            )
+        }
+    }
+}
+```
+
+No exemplo acima:
+- `key = { it }` utiliza o próprio item como identificador único, o que otimiza a renderização da lista.
+
+=== 4. Reutilização com Composables
+A reutilização de composables promove modularidade e escalabilidade ao permitir a repetição de padrões consistentes no design da aplicação.
+
+==== Exemplo Modular:
+```kotlin
+@Composable
+fun CustomButton(label: String, onClick: () -> Unit) {
+    Button(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth().padding(8.dp)
+    ) {
+        Text(label, style = MaterialTheme.typography.bodyLarge)
+    }
+}
+
+@Composable
+fun ButtonScreen() {
+    Column {
+        CustomButton(label = "Salvar", onClick = { /* Salvar lógica */ })
+        CustomButton(label = "Excluir", onClick = { /* Excluir lógica */ })
+    }
+}
+```
+
+=== 5. Temas e Estilização
+A estilização continua sendo um ponto forte no Jetpack Compose, com uso aprimorado do `MaterialTheme` para organização de cores, tipografias e formas. No SDK 34, há um suporte mais robusto para modos de tema dinâmico e adaptação com *Material Design 3 (Material You)*.
+
+==== Exemplo de Tema Atualizado:
+```kotlin
+@Composable
+fun AppTheme(content: @Composable () -> Unit) {
+    MaterialTheme(
+        colorScheme = dynamicLightColorScheme(LocalContext.current), // Tema adaptável
+        typography = Typography(
+            titleLarge = TextStyle(fontSize = 24.sp)
+        ),
+        content = content
+    )
+}
+```
+
+=== 6. Interoperabilidade com Views Clássicas
+A interoperabilidade continuará sendo essencial para ambientes que precisam integrar novos composables com componentes existentes.
+
+==== Exemplo de `AndroidView`:
+```kotlin
+@Composable
+fun LegacyViewIntegration() {
+    AndroidView(factory = { context ->
+        TextView(context).apply {
+            text = "Exemplo de integração com Views"
+        }
+    })
+}
+```
+
+Esse suporte facilita a migração gradual e protege investimentos em sistemas legados.
+
+== Estrutura Básica de um Composable
+
+O Jetpack Compose utiliza funções anotadas com `@Composable` para criar componentes de interface.
+
+.Exemplo simples de Composable
+```kotlin
+@Composable
+fun Greeting(name: String) {
+    Text(text = "Olá, $name!")
+}
+```
+
+Utilize a função `setContent { }` para exibir conteúdo em tela:
+```kotlin
+setContent {
+    Greeting("Mundo")
+}
+```
+
+=== Componentes Básicos
+
+1. **Text:**
+Renderiza texto na tela.
++
+```kotlin
+Text(text = "Bem-vindo ao Jetpack Compose")
+```
+
+2. **Button:**
+Botão interativo com ação ao clique.
++
+```kotlin
+Button(onClick = { /* Ação aqui */ }) {
+Text("Clique aqui")
+}
+```
+
+3. **Layouts:**
++
+- Organizam componentes na tela.
+* **Column**: Alinha itens verticalmente.
+* **Row**: Alinha itens horizontalmente.
++
+```kotlin
+Column {
+    Text("Linha 1")
+    Text("Linha 2")
+}
+```
+
+4. **Estado:**
+Adicione interatividade utilizando estado com `remember` e `mutableStateOf`.
++
+```kotlin
+var count by remember { mutableStateOf(0) }
+
+   Button(onClick = { count++ }) {
+       Text("Você clicou $count vezes.")
+   }
+```
+
+== Estilização com Modifiers
+
+Utilize `Modifier` para aplicar estilos e configurações nos componentes.
+
+- Exemplos comuns:
+* Margem: `Modifier.padding()`
+* Tamanho: `Modifier.size()`
+* Fundo (background): `Modifier.background()`
+
+.Exemplo de Modifier
+```kotlin
+Text(
+   text = "Texto estilizado",
+   modifier = Modifier.padding(16.dp).background(Color.LightGray)
+)
+```
+
+== Navegação com NavHost
+
+Jetpack Compose facilita a navegação entre telas com o **Navigation Compose**.
+
+1. **Adicionar dependências:**
+Certifique-se de incluir a dependência de navegação:
++
+```kotlin
+implementation("androidx.navigation:navigation-compose:2.x.x")
+```
+
+2. **Utilização do NavController:**
+- Crie um `NavController` e defina rotas de navegação com `NavHost`.
++
+.Exemplo de configuração de navegação:
+```kotlin
+@Composable
+fun AppNavigation() {
+    val navController = rememberNavController()
+
+    NavHost(navController = navController, startDestination = "screen1") {
+        composable("screen1") { Screen1(navController) }
+        composable("screen2") { Screen2(navController) }
+    }
+}
+```
+
+3. **Definindo Telas:**
+Cada tela é um composable:
+```kotlin
+@Composable
+fun Screen1(navController: NavController) {
+Column {
+Text("Tela 1")
+Button(onClick = { navController.navigate("screen2") }) {
+Text("Ir para a Tela 2")
+}
+}
+}
+
+   @Composable
+   fun Screen2(navController: NavController) {
+       Column {
+           Text("Tela 2")
+           Button(onClick = { navController.popBackStack() }) {
+               Text("Voltar para Tela 1")
+           }
+       }
+   }
+```
+
+
+== Tutorial
+
+=== 1. Configuração Inicial
+
+Antes de começar, é necessário configurar o projeto.
+
+==== Criando o projeto
+
+1. Crie um novo projeto no Android Studio.
+- No assistente, selecione **Empty Activity** na categoria `Phone and Tablet`.
+- Nomeie o projeto como `ComposeTutorial` (ou outro, se preferir).
+- Finalize a criação e aguarde a configuração do ambiente.
+
+2. Verifique se o arquivo `build.gradle` possui as dependências do Jetpack Compose configuradas:
++
+```kotlin
+android {
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.2" // Versão recomendada para SDK 34
+    }
+}
+
+dependencies {
+    implementation("androidx.compose.ui:ui:1.5.2")
+    implementation("androidx.compose.material3:material3:1.2.0")
+    implementation("androidx.compose.runtime:runtime:1.5.2")
+}
+```
+
+3. Execute o projeto para garantir que o ambiente está funcional.
+
+=== 2. Criação de Funções "Composables"
+
+Funções "composables" são o alicerce do Jetpack Compose. Elas permitem criar elementos da interface declarativamente.
+
+==== Adicionando texto na interface
+
+1. No arquivo `MainActivity.kt`, substitua o conteúdo inicial para criar um texto simples:
++
+```kotlin
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContent {
+            MessageCard("Mundo")
+        }
+    }
+}
+
+@Composable
+fun MessageCard(name: String) {
+    Text(text = "Olá, $name!")
+}
+```
+
+2. Adicione a anotação `@Composable` para indicar que a função `MessageCard` é uma função composable.
+
+==== Habilitando a pré-visualização
+
+1. Para visualizar sua função sem instalar o app no dispositivo, use a anotação `@Preview`:
++
+```kotlin
+import androidx.compose.ui.tooling.preview.Preview
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewMessageCard() {
+    MessageCard(name = "Compose")
+}
+```
+
+2. Clique no botão de atualização no painel de pré-visualização para exibir a interface.
+
+=== 3. Organização de Layout
+
+Os elementos de UI no Jetpack Compose são organizados hierarquicamente através de funções de layout como `Row`, `Column` ou `Box`.
+
+==== Exibindo mais informações
+
+1. Atualize a função `MessageCard` para mostrar o autor e o conteúdo da mensagem:
++
+```kotlin
+data class Message(val author: String, val content: String)
+
+@Composable
+fun MessageCard(msg: Message) {
+    Column {
+        Text(text = msg.author)
+        Text(text = msg.content)
+    }
+}
+```
+
+2. Substitua o parâmetro atual para utilizar o objeto `Message`:
++
+```kotlin
+MessageCard(msg = Message("Android", "Jetpack Compose é incrível!"))
+```
+
+==== Melhorando a disposição com `Row` e `Column`
+
+1. Adicione uma imagem para a mensagem e organize os itens horizontalmente:
+
+```kotlin
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.unit.dp
+
+@Composable
+fun MessageCard(msg: Message) {
+    Row(modifier = Modifier.padding(all = 8.dp)) {
+        Image(
+            painter = painterResource(R.drawable.profile_picture),
+            contentDescription = "Imagem do perfil",
+            modifier = Modifier
+                .size(40.dp)
+                .clip(CircleShape)
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Column {
+            Text(text = msg.author)
+            Text(text = msg.content)
+        }
+    }
+}
+```
+
+=== 4. Aplicação de Temas e Material Design
+
+O Jetpack Compose oferece suporte nativo ao Material Design 3, facilitando estilos consistentes.
+
+==== Aplicando temas
+
+1. Envolva a interface com o tema do aplicativo:
++
+```kotlin
+@Preview(showBackground = true)
+@Composable
+fun PreviewMessageCard() {
+    ComposeTutorialTheme {
+        MessageCard(msg = Message("Compose", "Explore o Material Design 3!"))
+    }
+}
+```
+
+2. Personalize o tema em `ui.theme/Theme.kt` para refletir a identidade do aplicativo:
++
+```kotlin
+val colorScheme = dynamicLightColorScheme(context)
+```
+
+==== Adicionando estilos
+
+1. Use o `MaterialTheme` para estilizar textos:
++
+```kotlin
+Text(
+    text = msg.author,
+    style = MaterialTheme.typography.titleSmall,
+    color = MaterialTheme.colorScheme.secondary
+)
+```
+
+2. Envolva o conteúdo da mensagem com `Surface` para adicionar forma e elevação:
++
+```kotlin
+Surface(
+    shape = MaterialTheme.shapes.medium,
+    shadowElevation = 1.dp
+) {
+    Text(text = msg.content, Modifier.padding(4.dp))
+}
+```
+
+=== 5. Listas e Animações
+
+Para interfaces dinâmicas, o Compose oferece os composables `LazyColumn` e ferramentas de animação.
+
+==== Criando uma lista de mensagens
+
+1. Utilize `LazyColumn` para exibir uma lista de mensagens:
++
+```kotlin
+@Composable
+fun Conversation(messages: List<Message>) {
+    LazyColumn {
+        items(messages) { message ->
+            MessageCard(msg = message)
+        }
+    }
+}
+```
+
+2. Crie uma amostra estática para testes:
++
+```kotlin
+val sampleMessages = listOf(
+    Message("Alice", "Olá!"),
+    Message("Bob", "Que tal usar o Compose?"),
+    Message("Carol", "Isso é incrível!")
+)
+```
+
+3. Adicione no bloco `setContent`:
++
+```kotlin
+Conversation(messages = sampleMessages)
+```
+
+==== Adicionando animações
+
+1. Expanda mensagens com animação ao serem clicadas:
++
+```kotlin
+import androidx.compose.animation.animateContentSize
+
+@Composable
+fun AnimatedMessageCard(msg: Message) {
+    var isExpanded by remember { mutableStateOf(false) }
+    Surface(
+        modifier = Modifier
+            .clickable { isExpanded = !isExpanded }
+            .animateContentSize()
+    ) {
+        Text(
+            text = msg.content,
+            maxLines = if (isExpanded) Int.MAX_VALUE else 1
+        )
+    }
+}
+```
