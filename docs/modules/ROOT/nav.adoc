@@ -1,6 +1,9 @@
 * xref:01-intro-dev-android-kotlin.adoc[1. Introdução]
 * xref:02-fundamentos-kotlin.adoc[2. Fundamentos da Linguagem Kotlin]
 * xref:03-intro-dev-android.adoc[3. Introdução ao Desenvolvimento de Apps Android com Jetpack Compose]
+* xref:04-android-studio.adoc[4. Utilizando o Android Studio]
+* xref:05-layouts.adoc[5. Fundamentos de Layouts no Jetpack Compose]
+
 * Recursos Adicionais
 ** xref:99-instalacao-android-studio.adoc[Instalação do Android Studio]
 ** xref:99-instalacao-jetbrains-intellij.adoc[Instalação do JetBrains IntelliJ IDEA]
