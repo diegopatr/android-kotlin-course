@@ -1,0 +1,222 @@
+= Utilizando o Android Studio
+
+== Recursos do Android Studio para Desenvolvimento de Interfaces com Jetpack Compose
+
+O Jetpack Compose é um toolkit moderno e declarativo para construção de interfaces no Android. Com ele, você pode criar layouts dinâmicos e reutilizáveis de maneira simples e eficiente. Um dos principais recursos que tornam o desenvolvimento de UI mais ágil é o uso da anotação `@Preview` para visualizar telas em tempo real no Android Studio.
+
+=== `@Preview`
+
+O **Preview**, oferecido pelo Jetpack Compose, permite que você veja o resultado de suas funções composable diretamente no Android Studio, sem a necessidade de rodar o emulador ou instalar o aplicativo em um dispositivo físico. Isso não apenas economiza tempo, mas também possibilita um workflow mais iterativo e dinâmico.
+
+A anotação `@Preview` é usada para habilitar essa funcionalidade em funções que criam componentes visuais. Além disso, você pode configurá-la para ajustar aspectos como tamanho da tela, exibição de fundo e outros detalhes importantes para a visualização.
+
+A funcionalidade de **Live Edit** no Jetpack Compose permite que o Preview seja atualizado automaticamente à medida que o código é modificado. Isso proporciona uma experiência de desenvolvimento mais ágil, eliminando a necessidade de compilar o aplicativo completamente para visualizar mudanças em tempo real.
+
+==== Como Utilizar o Preview
+
+Para habilitar o Preview no Android Studio, siga os passos abaixo:
+
+. **Crie uma Função Composable**:
+
+Antes de utilizar o Preview, é necessário ter uma função anotada com `@Composable`. Ela será responsável por definir o layout ou componente que você deseja visualizar. 
+
+Por exemplo, considere a função `CalculadoraScreen()`:
+
+[source,kotlin]
+----
+@Composable
+fun CalculadoraScreen() {
+    Column(
+        modifier = Modifier.fillMaxSize().padding(16.dp),
+        verticalArrangement = Arrangement.SpaceBetween,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(text = "Calculadora", style = MaterialTheme.typography.h4)
+        // Adicione aqui outros elementos da interface, como botões e entradas.
+    }
+}
+----
+
+[start=2]
+. **Adicionar a Anotação `@Preview`**:
+
+Após criar sua função composable, adicione outra função específica para o Preview e use a anotação `@Preview`. Essa abordagem organiza melhor o código e facilita a modificação futura.
+
+[source, kotlin]
+----
+@Preview(showBackground = true, name = "Preview da Calculadora")
+@Composable
+fun PreviewCalculadoraScreen() {
+    CalculadoraScreen()
+}
+----
+
+Onde:
+
+- `showBackground = true`: Para mostrar um fundo cinza claro no Preview, simulando o visual em um dispositivo real.
+- `name = "Preview da Calculadora"`: Um nome descritivo que aparece no painel de Preview do Android Studio.
+
+[start=3]
+. **Visualizar no Painel de Preview**:
+
+- Certifique-se de que a função com `@Preview` está no arquivo aberto no editor.
+- No Android Studio, abra o painel "Split" ou "Design" para visualizar a interface.
+- Caso a pré-visualização não seja carregada automaticamente, clique no botão **Refresh** no painel de Preview.
+
+==== Demonstração
+
+Acompanhe a seguir uma demonstração do processo de utilização do recurso de Preview:
+
+image::20-preview.gif[]
+
+==== Recursos Extras do Preview
+
+Além dos exemplos básicos, o Preview suporta funcionalidades que tornam o processo de design mais detalhado e flexível:
+
+- **Várias Pré-visualizações**: É possível criar várias funções com `@Preview` para representar diferentes estados da interface, como temas claros e escuros, idiomas ou configurações específicas.
+
+[source,kotlin]
+----
+@Preview(showBackground = true, name = "Modo Claro")
+@Composable
+fun LightModePreview() {
+    CalculadoraScreen()
+}
+
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, name = "Modo Escuro")
+@Composable
+fun DarkModePreview() {
+    CalculadoraScreen()
+}
+----
+
+
+- **Configuração de Tamanho da Tela**: Personalize a largura e altura da tela no Preview para simular diferentes dispositivos.
+
+[source,kotlin]
+----
+@Preview(widthDp = 360, heightDp = 640, name = "Tela de 5.5 polegadas")
+@Composable
+fun SmallScreenPreview() {
+    CalculadoraScreen()
+}
+----
+
+- **Inspeção de Layout (Layout Inspector)**: Durante a execução do app no emulador ou dispositivo, utilize o Layout Inspector do Android Studio (*View > Tool Windows > Layout Inspector*) para depurar as hierarquias de composable e ver como os componentes são renderizados.
+
+image::21-layout-inspector.gif[]
+
+=== Logcat
+
+O Logcat é uma ferramenta essencial para acompanhar o comportamento em tempo real do seu aplicativo Android. Ele exibe mensagens de log, exceções, `stack traces` e informações do dispositivo enquanto o aplicativo está em execução. Estas mensagens são extremamente úteis para depuração durante o desenvolvimento.
+
+==== Acessando o Logcat no Android Studio
+
+. **Abra o Logcat**:
+- O Logcat está disponível no painel inferior do Android Studio. Caso ele não esteja visível, vá até o menu superior e acesse:
+**View > Tool Windows > Logcat**.
+
+. **Conecte seu Dispositivo ou Emulador Android**:
+- Certifique-se de que um dispositivo físico ou um emulador está conectado e selecionado no menu suspenso à esquerda do painel Logcat. O Android Studio automaticamente lista os dispositivos disponíveis.
+
+==== Adicionando Mensagens Personalizadas ao Logcat
+
+O Logcat acompanha automaticamente exceções não tratadas e mensagens do sistema Android, mas você também pode incluir mensagens personalizadas para monitorar fluxos específicos do seu aplicativo.
+
+. **Utilizando o Log nas Funções Kotlin**:
+No Kotlin, use a classe `Log` para enviar mensagens ao Logcat.
+
+[source,kotlin]
+----
+import android.util.Log
+
+fun processarEntrada(primeiroValor: String?, segundoValor: String?, operador: String): String {
+    if (primeiroValor.isNullOrEmpty() || segundoValor.isNullOrEmpty()) {
+        Log.e("CalculadoraActivity.processarEntrada",
+            "Parâmetros inválidos para a função processarEntrada.")  //<.>
+        return MENSAGEM_ERRO
+    }
+    return try {
+        when (operador) {
+            "+" -> (primeiroValor.toDouble() + segundoValor.toDouble()).toString()
+            "-" -> (primeiroValor.toDouble() - segundoValor.toDouble()).toString()
+            "*" -> (primeiroValor.toDouble() * segundoValor.toDouble()).toString()
+            "/" -> {
+                if (segundoValor == ZERO) {
+                    Log.e("CalculadoraActivity.processarEntrada",
+                        "Divisão por zero.") // <.>
+                    MENSAGEM_ERRO
+                }
+                else (primeiroValor.toDouble() / segundoValor.toDouble()).toString()
+            }
+            else -> {
+                Log.e("CalculadoraActivity.processarEntrada",
+                    "Operador inválido.")  // <.>
+                MENSAGEM_ERRO
+            }
+        }
+    } catch (e: Exception) {
+        Log.e("CalculadoraActivity.processarEntrada",
+            "Erro ao processarEntrada.",
+            e) // <.>
+        MENSAGEM_ERRO
+    }
+}
+----
+
+<.> Adicionado log de erro indicando parâmetros inválidos para a função processarEntrada.
+<.> Adicionado log de erro indicando tentativa de divisão por zero.
+<.> Adicionado log de erro indicando operador inválido fornecido na operação.
+<.> Adicionado log de erro detalhado para demais exceções, incluindo o rastreamento da stack trace.
+
+Você pode também usar variantes como `Log.v` (verbose), `Log.i` (informações) e `Log.w` (alertas) e `Log.e` (erros) e `Log.d` (debug).
+
+==== Demonstração
+
+Acompanhe a seguir uma demonstração do processo de utilização do Logcat:
+
+image::22-logcat.gif[]
+
+==== Filtrando Logs no Logcat
+
+O Android Studio permite realizar buscas precisas nas mensagens do Logcat usando consultas de chave-valor no campo principal. Essas consultas ajudam a focar em informações relevantes e ignorar registros desnecessários. É possível utilizar expressões regulares, negações e operadores lógicos para maior flexibilidade. Pressione `Ctrl + Space` no campo de consulta para acessar sugestões de filtros e suas opções disponíveis.
+
+**Principais Chaves para Consultas**:
+
+- **tag**: Filtra pelo campo *Tag* das mensagens de log.
+- **package**: Nome do pacote do app gerador das mensagens.
+- **process**: Nome do processo do app gerador das mensagens.
+- **message**: Conteúdo textual da entrada de log.
+- **level**: Nível de gravidade (VERBOSE, DEBUG, INFO, WARN, ERROR, ASSERT).
+- **age**: Filtra mensagens recentes com base no carimbo de data/hora, como `age:5m` (últimos 5 minutos).
+- **is**: Filtros especiais:
+
+* `is:crash`: Apenas falhas de aplicativo.
+* `is:stacktrace`: Detecta *stack traces* Java.
+
+**Modificadores e Combinações:**
+
+- **Negação**: Use o prefixo `-` para excluir registros. Exemplo: `-tag:MyTag` exclui mensagens com a `Tag MyTag`.
+- **Expressão Regular**: Use `~` para aplicar regex. Exemplo: `tag~:My.*Tag` filtra *Tags* que começam com "My" e terminam com "Tag".
+- **Combinar Modificadores**: Combine negadores e regex. Exemplo: `-tag~:My.*Tag`.
+
+**Operadores Lógicos**:
+
+- **Operadores AND e OR**:
+* Use `&` para combinar condições com AND: `(tag:foo & package:myapp)`
+* Use `|` para combinar condições com OR: `(tag:foo | level:ERROR)`
+- **Precedência e Agrupamento**:
+* Parênteses organizam as consultas: `(tag:foo | level:ERROR) & package:mine`
+* Sem operadores explícitos, múltiplas condições de uma mesma chave implicam OR, enquanto chaves diferentes implicam AND.
+
+**Exemplos de Consultas:**
+
+- Filtrar logs de um pacote específico com erros ou mais graves:
+`package:myapp level:ERROR`
+- Filtrar mensagens recentes (últimos 10 minutos):
+`age:10m`
+- Combinar condições com exclusões:
+`(tag:foo | tag:bar) & -message:IgnoredText`
+
+== Layout
+
