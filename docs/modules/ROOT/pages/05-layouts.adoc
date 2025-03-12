@@ -1,0 +1,1016 @@
+= Fundamentos de Layouts no Jetpack Compose
+
+Este capítulo explora o sistema de layouts do Jetpack Compose, um componente crucial para a construção de interfaces de usuário (UI) modernas e eficientes em aplicativos Android. O Compose, com sua abordagem declarativa, simplifica significativamente o design e a implementação de layouts em comparação com o sistema de Views tradicional do Android.
+
+== Objetivos do Sistema de Layout do Compose
+
+O sistema de layout do Jetpack Compose foi projeted with two primary goals in mind:
+
+1.  **Alto Desempenho:** O Compose foi projetado para lidar eficientemente com árvores de UI profundas, evitando os problemas de desempenho que podem surgir com layouts aninhados no sistema de Views.
+
+2.  **Facilidade de Escrita de Layouts Personalizados:** O Compose oferece APIs intuitivas e flexíveis que permitem aos desenvolvedores criar layouts personalizados com relativa facilidade, sem a complexidade associada à extensão de `ViewGroup` no sistema de Views.
+
+== Fundamentos dos Composables
+
+As funções composable são os blocos de construção fundamentais do Jetpack Compose. Uma função composable é uma função que emite `Unit` e descreve uma parte da sua UI.  Ela recebe entradas (dados) e gera o que é exibido na tela.  Um composable pode emitir vários elementos de UI.
+
+.Exemplo de um Composable
+[source,kotlin]
+----
+@Composable
+fun ExemploSemLayout() {
+    Box(
+        modifier = Modifier
+            .size(100.dp)
+            .border(1.dp, ColorPalette.RED.darker)
+            .background(ColorPalette.RED.base)
+            //.align(Alignment.TopStart) - O modificador align não é suportado fora de um componente de layout
+    )
+    Box(
+        modifier = Modifier
+            .size(100.dp)
+            .border(1.dp, ColorPalette.BLUE.darker)
+            .background(ColorPalette.BLUE.base)
+            //.align(Alignment.TopEnd)
+    )
+    Box(
+        modifier = Modifier
+            .size(100.dp)
+            .border(1.dp, ColorPalette.GREEN.darker)
+            .background(ColorPalette.GREEN.base)
+            //.align(Alignment.BottomStart)
+    )
+    Box(
+        modifier = Modifier
+            .size(100.dp)
+            .border(1.dp, ColorPalette.ORANGE.darker)
+            .background(ColorPalette.ORANGE.base)
+            //.align(Alignment.BottomEnd)
+    )
+    Box(
+        modifier = Modifier
+            .size(50.dp)
+            .border(1.dp, ColorPalette.PURPLE.darker)
+            .background(ColorPalette.PURPLE.base)
+            //.align(Alignment.Center)
+    )
+}
+----
+
+image::21-sem-layout.png[width=50%]
+
+Sem uma estrutura que defina a organização dos elementos `Box`, o Compose os renderiza sobrepostos, resultando na visualização apenas do último elemento declarado.  No exemplo anterior, somente o último `Box` é visível, ocultando os demais. Além disso, modificadores como `size` e `align` não terão o efeito esperado sem um layout que defina o posicionamento e dimensionamento dos elementos.  Os layouts do Compose fornecem essa estrutura essencial para controlar a disposição dos componentes na interface.
+
+== Unidades de Medida no Jetpack Compose
+
+No Jetpack Compose, a definição de dimensões e espaçamentos utiliza unidades de medida específicas para garantir a consistência e adaptabilidade da interface em diferentes dispositivos.  As principais unidades são `dp` (density-independent pixels) e `sp` (scale-independent pixels), além da unidade `px` (pixels), que não é recomendada por não se adaptar à densidade de pixels da tela.
+
+=== dp (Density-Independent Pixels)
+
+A unidade `dp` é a recomendada para definir dimensões de componentes de interface.  Ela representa uma densidade independente de pixels, o que significa que um valor em `dp` corresponderá a um tamanho físico similar em telas com diferentes densidades de pixels.  Isso garante que um elemento com 16 dp de largura ocupe aproximadamente o mesmo espaço físico em um dispositivo com baixa densidade de pixels e em um dispositivo com alta densidade de pixels.
+
+=== sp (Scale-Independent Pixels)
+
+A unidade `sp` é utilizada para definir o tamanho de fontes.  Assim como `dp`, ela é independente da densidade de pixels, mas também leva em consideração as preferências de tamanho de fonte do usuário.  Isso permite que usuários com dificuldades de visão ajustem o tamanho do texto sem afetar o layout geral da interface.  É importante respeitar essa configuração do usuário e utilizar `sp` para garantir a acessibilidade do aplicativo.
+
+```kotlin
+// Definindo o padding de um componente em dp
+Modifier.padding(16.dp)
+
+// Definindo o tamanho de uma fonte em sp
+Text(text = "Exemplo de texto", fontSize = 18.sp)
+
+// Definindo a largura de um componente em dp
+Modifier.width(100.dp)
+```
+
+== Modificadores (Modifiers) no Jetpack Compose
+
+Modificadores (Modifiers) são um conceito central no Jetpack Compose, permitindo a aplicação de alterações e customizações na aparência e comportamento dos componentes de interface.  Eles oferecem uma maneira concisa e expressiva de modificar propriedades como tamanho, padding, alinhamento, cor de fundo, e até mesmo adicionar interações como cliques.
+
+=== Encadeamento de Modificadores
+
+Uma característica poderosa dos modificadores é a capacidade de encadeá-los.  Através do operador `.` (ponto), múltiplos modificadores podem ser combinados sequencialmente, criando modificações cumulativas.  A ordem de aplicação dos modificadores é crucial, pois cada modificador opera sobre o resultado do modificador anterior.
+
+=== Exemplo de Encadeamento
+
+```kotlin
+Text(
+    text = "Olá, Compose!",
+    modifier = Modifier
+        .padding(16.dp)
+        .background(Color.Blue)
+        .clickable { /* Ação ao clicar */ }
+)
+```
+
+Neste exemplo, o texto "Olá, Compose!" terá um padding de 16 dp, um fundo azul, e será clicável. A ordem garante que o padding seja aplicado primeiro, depois a cor de fundo, e por último, a capacidade de clique.
+
+=== Modificadores Comuns
+
+Alguns dos modificadores mais utilizados incluem:
+
+*   `padding`: Adiciona espaçamento ao redor do componente.
+*   `background`: Define a cor de fundo.
+*   `border`: Adiciona uma borda ao componente.
+*   `clickable`: Torna o componente clicável.
+*   `size`: Define as dimensões do componente.
+*   `fillMaxWidth`, `fillMaxHeight`, `fillMaxSize`: Faz o componente ocupar toda a largura, altura, ou ambos, respectivamente, dentro do seu componente pai.
+*   `offset`: Desloca o componente em relação à sua posição original.
+*   `weight`: Usado em `Row` e `Column` para distribuir o espaço proporcionalmente entre os componentes filhos.
+*   `align`: Controla o alinhamento do componente dentro do seu pai.
+
+=== Importância da Ordem
+
+A ordem dos modificadores afeta diretamente o resultado final.  Considere os exemplos a seguir:
+
+.Exemplo 1: Padding *depois* de clickable
+
+```kotlin
+Modifier
+    .clickable { /* Ação */ }
+    .padding(16.dp)
+```
+
+Neste caso, a área clicável inclui o `padding`.
+
+.Exemplo 2: Padding *antes* de clickable
+```kotlin
+Modifier
+    .padding(16.dp)
+    .clickable { /* Ação */ }
+```
+
+Aqui, apenas a área do componente, excluindo o `padding`, é clicável.
+
+
+
+== Componentes de Layout Fundamentais
+
+O Compose oferece um conjunto de componentes de layout predefinidos que abrangem os cenários mais comuns de organização de elementos na interface.  A combinação e o aninhamento desses layouts permitem a construção de interfaces complexas de forma eficiente, com melhor desempenho em comparação ao sistema tradicional de Views do Android.
+
+=== Column
+
+O `Column` organiza seus elementos filhos verticalmente, um abaixo do outro.  Similar a um `LinearLayout` vertical no sistema de Views.
+
+*   `verticalArrangement`: Controla o espaçamento vertical entre os elementos filhos. Algumas opções incluem:
+    **   `Arrangement.Top`: Alinha os elementos no topo do `Column`.
+    **   `Arrangement.Center`: Centraliza os elementos verticalmente.
+    **   `Arrangement.Bottom`: Alinha os elementos na parte inferior do `Column`.
+    **   `Arrangement.SpaceBetween`: Distribui os elementos uniformemente no espaço vertical disponível.
+    **   `Arrangement.SpaceAround`: Distribui os elementos com espaçamento igual ao redor de cada elemento.
+    **   `Arrangement.SpaceEvenly`: Distribui os elementos com espaçamento uniforme entre eles e as bordas do `Column`.
+
+*   `horizontalAlignment`: Controla o alinhamento horizontal dos elementos filhos.  Permite alinhar todos os filhos à esquerda, direita, ou centralmente.  As opções incluem:
+    **   `Alignment.Start`: Alinha os elementos à esquerda.
+    **   `Alignment.CenterHorizontally`: Centraliza os elementos horizontalmente.
+    **   `Alignment.End`: Alinha os elementos à direita.
+
+
+=== Row
+
+O `Row` organiza seus elementos filhos horizontalmente, um ao lado do outro.  Similar a um `LinearLayout` horizontal.
+
+*   `horizontalArrangement`:  Controla o espaçamento horizontal entre os elementos filhos.  As opções são análogas às do `verticalArrangement` em `Column`.
+
+*   `verticalAlignment`: Controla o alinhamento vertical dos elementos filhos. Permite alinhar todos os filhos no topo, no centro, ou na base do `Row`.  As opções incluem:
+    **   `Alignment.Top`: Alinha os elementos no topo.
+    **   `Alignment.CenterVertically`: Centraliza os elementos verticalmente.
+    **   `Alignment.Bottom`: Alinha os elementos na base.
+
+
+=== Box
+
+O `Box` permite a sobreposição de elementos, posicionando-os um sobre o outro em diferentes áreas da tela.  Oferece um controle preciso sobre o posicionamento por meio do modificador `align`.
+
+*   `contentAlignment`: Define o alinhamento do conteúdo dentro do `Box`. Permite combinar alinhamentos horizontais e verticais, como:
+    **   `Alignment.TopStart`: Alinha o conteúdo no canto superior esquerdo.
+    **   `Alignment.Center`: Centraliza o conteúdo.
+    **   `Alignment.BottomEnd`: Alinha o conteúdo no canto inferior direito.
+
+=== Aninhamento de Layouts e Modificadores
+
+A flexibilidade do Compose reside na capacidade de aninhar layouts (`Column`, `Row` e `Box`) para criar interfaces complexas.  O uso conjunto com modificadores permite personalizar ainda mais o posicionamento, tamanho e aparência dos elementos.
+
+O modificador `align` (usado em `Row`, `Column`, e `Box`) permite controlar o alinhamento de um elemento específico dentro de seu layout pai, independentemente do alinhamento dos outros elementos.
+
+O modificador `weight` (utilizado em `Row` e `Column`) permite distribuir o espaço disponível entre os elementos filhos de forma proporcional.
+
+.Exemplo de Layout Utilizando Classes Básicas de Alinhamento
+[source,kotlin]
+----
+package com.example.android.layout
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+
+enum class ColorPalette(val lighter: Color, val base: Color, val darker: Color) {
+    RED(
+        lighter = Color(0xFFEF9A9A),
+        base = Color(0xFFE57373),
+        darker = Color(0xFFEF5350)
+    ),
+    BLUE(
+        lighter = Color(0xFF90CAF9),
+        base = Color(0xFF64B5F6),
+        darker = Color(0xFF42A5F5)
+    ),
+    GREEN(
+        lighter = Color(0xFFA5D6A7),
+        base = Color(0xFF81C784),
+        darker = Color(0xFF66BB6A)
+    ),
+    ORANGE(
+        lighter = Color(0xFFFFCC80),
+        base = Color(0xFFFFB74D),
+        darker = Color(0xFFF57C00)
+
+    ),
+    PURPLE(
+        lighter = Color(0xFFCE93D8),
+        base = Color(0xFFBA68C8),
+        darker = Color(0xFFAB47BC)
+    );
+
+    fun getVariant(variant: Variant): Color {
+        return when (variant) {
+            Variant.LIGHTER -> lighter
+            Variant.BASE -> base
+            Variant.DARKER -> darker
+        }
+    }
+
+    enum class Variant {
+        LIGHTER, BASE, DARKER
+    }
+}
+
+@Composable
+fun ExemploRowLayout() {
+    Row(
+        modifier = Modifier
+            .size(200.dp)
+            .background(Color.LightGray)
+            .padding(16.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(50.dp)
+                .border(1.dp, ColorPalette.RED.darker)
+                .background(ColorPalette.RED.base)
+                .align(Alignment.CenterVertically)
+        )
+        Box(
+            modifier = Modifier
+                .size(50.dp)
+                .border(1.dp, ColorPalette.BLUE.darker)
+                .background(ColorPalette.BLUE.base)
+                .align(Alignment.Bottom)
+        )
+        Box(
+            modifier = Modifier
+                .size(50.dp)
+                .border(1.dp, ColorPalette.GREEN.darker)
+                .background(ColorPalette.GREEN.base)
+                .align(Alignment.Top)
+        )
+        Box(
+            modifier = Modifier
+                .size(50.dp)
+                .border(1.dp, ColorPalette.ORANGE.darker)
+                .background(ColorPalette.ORANGE.base)
+        )
+        Box(
+            modifier = Modifier
+                .size(50.dp)
+                .border(1.dp, ColorPalette.PURPLE.darker)
+                .background(ColorPalette.PURPLE.base)
+        )
+    }
+}
+
+@Composable
+fun ExemploColLayout() {
+    Column(
+        modifier = Modifier
+            .size(200.dp)
+            .background(Color.LightGray)
+            .padding(16.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(50.dp)
+                .border(1.dp, ColorPalette.RED.darker)
+                .background(ColorPalette.RED.base)
+                .align(Alignment.Start)
+        )
+        Box(
+            modifier = Modifier
+                .size(50.dp)
+                .border(1.dp, ColorPalette.BLUE.darker)
+                .background(ColorPalette.BLUE.base)
+                .align(Alignment.CenterHorizontally)
+        )
+        Box(
+            modifier = Modifier
+                .size(50.dp)
+                .border(1.dp, ColorPalette.GREEN.darker)
+                .background(ColorPalette.GREEN.base)
+                .align(Alignment.End)
+        )
+        Box(
+            modifier = Modifier
+                .size(50.dp)
+                .border(1.dp, ColorPalette.ORANGE.darker)
+                .background(ColorPalette.ORANGE.base)
+        )
+        Box(
+            modifier = Modifier
+                .size(50.dp)
+                .border(1.dp, ColorPalette.PURPLE.darker)
+                .background(ColorPalette.PURPLE.base)
+        )
+    }
+}
+
+@Composable
+fun ExemploBoxLayout() {
+    Box(
+        modifier = Modifier
+            .size(200.dp)
+            .background(Color.LightGray)
+            .padding(16.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(100.dp)
+                .border(1.dp, ColorPalette.RED.darker)
+                .background(ColorPalette.RED.base)
+                .align(Alignment.TopStart)
+        )
+        Box(
+            modifier = Modifier
+                .size(100.dp)
+                .border(1.dp, ColorPalette.BLUE.darker)
+                .background(ColorPalette.BLUE.base)
+                .align(Alignment.TopEnd)
+        )
+        Box(
+            modifier = Modifier
+                .size(100.dp)
+                .border(1.dp, ColorPalette.GREEN.darker)
+                .background(ColorPalette.GREEN.base)
+                .align(Alignment.BottomStart)
+        )
+        Box(
+            modifier = Modifier
+                .size(100.dp)
+                .border(1.dp, ColorPalette.ORANGE.darker)
+                .background(ColorPalette.ORANGE.base)
+                .align(Alignment.BottomEnd)
+        )
+        Box(
+            modifier = Modifier
+                .size(150.dp)
+                .border(1.dp, ColorPalette.PURPLE.darker)
+                .background(ColorPalette.PURPLE.base)
+                .align(Alignment.Center)
+        )
+    }
+}
+
+@Preview(heightDp = 150, widthDp = 300, showBackground = true)
+@Composable
+private fun ExemploRowPreview() {
+    ExemploRowLayout()
+}
+
+@Preview(heightDp = 300, widthDp = 150, showBackground = true)
+@Composable
+private fun ExemploColPreview() {
+    ExemploColLayout()
+}
+
+@Preview(heightDp = 300, widthDp = 300, showBackground = true)
+@Composable
+private fun ExemploBoxPreview() {
+    ExemploBoxLayout()
+}
+----
+
+image::20-layout-row.png[height=50%]
+image::20-layout-column.png[width=50%]
+image::20-layout-box.png[width=66%]
+
+== O Modelo de Layout no Jetpack Compose
+
+O Jetpack Compose utiliza um modelo de layout eficiente e performático, baseado em uma única passagem (single-pass), distinto do modelo tradicional do Android.  Este modelo simplifica o processo de medição e posicionamento dos elementos da interface, contribuindo para uma experiência de usuário mais fluida, especialmente em layouts complexos.
+
+=== O Processo de Layout em Três Etapas
+
+O processo de layout no Compose se divide em três etapas fundamentais:
+
+. **Medição (Measurement):** Nesta fase, os componentes pais determinam as dimensões de seus filhos.  Os pais fornecem restrições (constraints) que definem os limites de tamanho mínimo e máximo permitidos para cada filho.  Essas restrições propagam-se pela árvore de componentes, de cima para baixo (top-down).
+
+. **Dimensionamento (Sizing):**  Com base nas restrições recebidas dos pais, os componentes filhos calculam suas próprias dimensões. Os nós folha, aqueles sem filhos, determinam seu tamanho intrínseco e o comunicam de volta aos seus pais.  Este processo percorre a árvore de componentes de baixo para cima (bottom-up).
+
+. **Posicionamento (Placement):**  Após a etapa de dimensionamento, os componentes pais posicionam seus filhos dentro de seus próprios limites.  As coordenadas de posicionamento são calculadas e propagadas pela árvore, permitindo que cada elemento seja renderizado na posição correta na tela.
+
+Para ilustrar o processo, considere o seguinte exemplo de um layout simples:
+
+[source,kotlin]
+----
+@Composable
+fun SearchResult() {
+    Row {
+        Image( /* ... */ )
+        Column {
+            Text( /* ... */ )
+            Text( /* ... */ )
+        }
+    }
+}
+----
+
+A estrutura hierárquica deste layout pode ser representada pela seguinte árvore:
+```
+ SearchResult
+   Row
+     Image
+     Column
+       Text
+       Text
+```
+
+A sequência de operações de layout seria:
+
+1. `Row` (raiz) recebe as restrições iniciais.
+2. `Row` mede `Image`, passando as restrições.
+3. `Image` (folha) calcula e retorna seu tamanho.
+4. `Row` mede `Column`, passando as restrições.
+5. `Column` mede o primeiro `Text`, passando as restrições.
+6. O primeiro `Text` (folha) calcula e retorna seu tamanho.
+7. `Column` mede o segundo `Text`, passando as restrições.
+8. O segundo `Text` (folha) calcula e retorna seu tamanho.
+9. `Column` calcula seu próprio tamanho, baseado nos tamanhos dos `Text` filhos.
+10. `Row` calcula seu próprio tamanho, baseado nos tamanhos de `Image` e `Column`.
+11. `Row` posiciona `Image` e `Column`.
+12. `Column` posiciona os dois `Text`.
+
+A principal vantagem do modelo single-pass é a sua eficiência.  Cada componente é medido e posicionado apenas uma vez, evitando cálculos redundantes e otimizando o desempenho, especialmente em layouts aninhados e complexos.  Isso contrasta com o modelo tradicional do Android, que pode exigir múltiplas passagens para determinar o layout final, impactando o desempenho.
+
+== Layouts Responsivos
+
+Layouts responsivos são a base para que seu aplicativo Android funcione bem em uma variedade de dispositivos, desde telefones pequenos até tablets grandes e dispositivos dobráveis.  Um layout responsivo se ajusta dinamicamente ao espaço disponível na tela, garantindo que o conteúdo seja sempre legível, acessível e visualmente agradável.  No Jetpack Compose, a responsividade é inerente à forma como você constrói a UI, mas existem técnicas e ferramentas específicas para facilitar esse processo.
+
+=== Princípios de Design Responsivo
+
+Antes de mergulhar nas ferramentas do Compose, é importante entender os princípios que norteiam o design responsivo:
+
+1.  **Fluidez:** Os elementos da UI devem se adaptar suavemente a diferentes tamanhos de tela, redimensionando-se e reposicionando-se conforme necessário. Evite layouts fixos que ficam cortados ou com espaços vazios em determinadas configurações.
+2.  **Pontos de Interrupção (Breakpoints):** Defina larguras e alturas específicas (os "breakpoints") nas quais o layout muda significativamente. As Window Size Classes do Compose são baseadas nesse conceito.
+3.  **Hierarquia Visual:** Use tamanho, espaçamento, cor e outros atributos visuais para guiar o olhar do usuário e destacar os elementos mais importantes. A hierarquia deve ser mantida em diferentes tamanhos de tela.
+4.  **Conteúdo Prioritário:** Nem todo o conteúdo precisa ser exibido em todas as telas. Em telas menores, priorize o conteúdo essencial e oculte ou mova elementos menos importantes para áreas secundárias (como menus ou telas de detalhes).
+5.  **Espaçamento Consistente:** Mantenha um espaçamento consistente entre os elementos e as margens da tela, independentemente do tamanho da tela. Isso melhora a legibilidade e a estética.
+6.  **Imagens Flexíveis:** As imagens devem se redimensionar proporcionalmente para evitar distorções. Use `ContentScale` para controlar como as imagens se ajustam.
+7. **Texto legível:** O texto não deve se tornar pequeno ou grande demais e ilegível em telas diferentes. O Jetpack Compose possui mecanismos que auxiliam nessa tarefa.
+
+=== Ferramentas do Compose para Responsividade
+
+O Jetpack Compose oferece várias ferramentas para criar layouts responsivos:
+
+*   **`Column` e `Row` com `Arrangement` e `Alignment`:**  Como já vimos, `Column` e `Row` são os blocos de construção básicos para layouts verticais e horizontais.  As propriedades `horizontalArrangement`/`verticalArrangement` (para `Row` e `Column`, respectivamente) e `verticalAlignment`/`horizontalAlignment` permitem controlar como os elementos filhos são distribuídos e alinhados dentro do layout.
+
+*   `Arrangement.SpaceBetween`: Distribui o espaço uniformemente *entre* os elementos.
+*   `Arrangement.SpaceAround`: Distribui o espaço uniformemente *ao redor* dos elementos (incluindo as extremidades).
+*   `Arrangement.SpaceEvenly`: Distribui o espaço uniformemente entre os elementos e as extremidades.
+*   `Alignment.CenterVertically`, `Alignment.CenterHorizontally`: Centraliza os elementos verticalmente ou horizontalmente.
+*   `Alignment.Top`, `Alignment.Bottom`, `Alignment.Start`, `Alignment.End`: Alinha os elementos nas bordas superior, inferior, inicial (esquerda em LTR, direita em RTL) ou final, respectivamente.
+
+*   **`Modifier.weight`:**  Dentro de `Column` e `Row`, o modifier `weight` permite que os elementos filhos ocupem uma *proporção* do espaço disponível. Isso é fundamental para criar layouts flexíveis.
+
+.Exemplo de `weight`
+[source,kotlin]
+----
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+
+enum class ColorPalette(val lighter: Color, val base: Color, val darker: Color) {
+    RED(
+        lighter = Color(0xFFEF9A9A), base = Color(0xFFE57373), darker = Color(0xFFEF5350)
+    ),
+    BLUE(
+        lighter = Color(0xFF90CAF9), base = Color(0xFF64B5F6), darker = Color(0xFF42A5F5)
+    ),
+    GREEN(
+        lighter = Color(0xFFA5D6A7), base = Color(0xFF81C784), darker = Color(0xFF66BB6A)
+    ),
+    ORANGE(
+        lighter = Color(0xFFFFCC80), base = Color(0xFFFFB74D), darker = Color(0xFFF57C00)
+
+    ),
+    PURPLE(
+        lighter = Color(0xFFCE93D8), base = Color(0xFFBA68C8), darker = Color(0xFFAB47BC)
+    );
+
+    fun getVariant(variant: Variant): Color {
+        return when (variant) {
+            Variant.LIGHTER -> lighter
+            Variant.BASE -> base
+            Variant.DARKER -> darker
+        }
+    }
+
+    enum class Variant {
+        LIGHTER, BASE, DARKER
+    }
+}
+
+@Composable
+fun BaseBox(
+    modifier: Modifier = Modifier,
+    colorPalette: ColorPalette,
+    text: String = ""
+) {
+    Box(
+        modifier = modifier
+            .size(50.dp)
+            .border(1.dp, colorPalette.darker)
+            .background(colorPalette.base),
+        contentAlignment = Alignment.Center
+    ) {
+        if (text.isNotEmpty()) {
+            Text(
+                text = text,
+                modifier = Modifier.padding(4.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun RedBox(modifier: Modifier = Modifier, text: String = "") = BaseBox(modifier, ColorPalette.RED, text)
+
+@Composable
+fun BlueBox(modifier: Modifier = Modifier, text: String = "") = BaseBox(modifier, ColorPalette.BLUE, text)
+
+@Composable
+fun GreenBox(modifier: Modifier = Modifier, text: String = "") = BaseBox(modifier, ColorPalette.GREEN, text)
+
+@Composable
+fun OrangeBox(modifier: Modifier = Modifier, text: String = "") = BaseBox(modifier, ColorPalette.ORANGE, text)
+
+@Composable
+fun PurpleBox(modifier: Modifier = Modifier, text: String = "") = BaseBox(modifier, ColorPalette.PURPLE, text)
+
+@Composable
+fun ExemploRowLayoutResponsivo() {
+    Row(
+        modifier = Modifier
+            .size(200.dp)
+            .background(Color.LightGray)
+            .padding(16.dp)
+    ) {
+        RedBox(Modifier.weight(1f), text = "1/4")
+        BlueBox(Modifier.weight(2f), text = "2/4")
+        GreenBox(Modifier.weight(1f), text = "1/4")
+    }
+}
+
+
+@Preview(heightDp = 150, widthDp = 300, showBackground = true)
+@Composable
+private fun ExemploResponsivoLandscapePreview() {
+    ExemploRowLayoutResponsivo()
+}
+
+@Preview(heightDp = 300, widthDp = 150, showBackground = true)
+@Composable
+private fun ExemploResponsivoPortraitPreview() {
+    ExemploRowLayoutResponsivo()
+}
+----
+
+image::22-responsive-layout.png[]
+
+*   **`Modifier.fillMaxWidth`, `Modifier.fillMaxHeight`, `Modifier.fillMaxSize`:**  Esses modifiers fazem com que um composable ocupe todo o espaço disponível em uma determinada dimensão (largura, altura ou ambas).
+
+*   **`Modifier.aspectRatio`:**  Mantém uma proporção específica entre a largura e a altura de um composable. Isso é útil para imagens e outros elementos que precisam manter suas proporções originais.
+
+.Exemplo de `aspectRatio`
+[source,kotlin]
+----
+Image(
+    painter = painterResource(R.drawable.my_image),
+    contentDescription = "My Image",
+    contentScale = ContentScale.Crop, // Importante para controlar o comportamento
+    modifier = Modifier.aspectRatio(16f / 9f) // Mantém a proporção 16:9
+)
+----
+
+*   **`BoxWithConstraints`:** Este composable fornece as restrições de tamanho (constraints) do pai, permitindo que você tome decisões de layout com base no espaço disponível.
+
+.Exemplo de `BoxWithConstraints` para Colunas Responsivas
+[source,kotlin]
+----
+import android.content.res.Configuration
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredHeight
+import androidx.compose.foundation.layout.requiredWidth
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+
+enum class ColorPalette(val lighter: Color, val base: Color, val darker: Color) {
+    RED(
+        lighter = Color(0xFFEF9A9A), base = Color(0xFFE57373), darker = Color(0xFFEF5350)
+    ),
+    BLUE(
+        lighter = Color(0xFF90CAF9), base = Color(0xFF64B5F6), darker = Color(0xFF42A5F5)
+    ),
+    GREEN(
+        lighter = Color(0xFFA5D6A7), base = Color(0xFF81C784), darker = Color(0xFF66BB6A)
+    ),
+    ORANGE(
+        lighter = Color(0xFFFFCC80), base = Color(0xFFFFB74D), darker = Color(0xFFF57C00)
+
+    ),
+    PURPLE(
+        lighter = Color(0xFFCE93D8), base = Color(0xFFBA68C8), darker = Color(0xFFAB47BC)
+    );
+
+    fun getVariant(variant: Variant): Color {
+        return when (variant) {
+            Variant.LIGHTER -> lighter
+            Variant.BASE -> base
+            Variant.DARKER -> darker
+        }
+    }
+
+    enum class Variant {
+        LIGHTER, BASE, DARKER
+    }
+}
+
+@Composable
+fun BaseBox(
+    modifier: Modifier = Modifier,
+    colorPalette: ColorPalette,
+    text: String = ""
+) {
+    Box(
+        modifier = modifier
+            .size(50.dp)
+            .border(1.dp, colorPalette.darker)
+            .background(colorPalette.base),
+        contentAlignment = Alignment.Center
+    ) {
+        if (text.isNotEmpty()) {
+            Text(
+                text = text,
+                modifier = Modifier.padding(4.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun RedBox(modifier: Modifier = Modifier, text: String = "") = BaseBox(modifier, ColorPalette.RED, text)
+
+@Composable
+fun BlueBox(modifier: Modifier = Modifier, text: String = "") = BaseBox(modifier, ColorPalette.BLUE, text)
+
+@Composable
+fun GreenBox(modifier: Modifier = Modifier, text: String = "") = BaseBox(modifier, ColorPalette.GREEN, text)
+
+@Composable
+fun OrangeBox(modifier: Modifier = Modifier, text: String = "") = BaseBox(modifier, ColorPalette.ORANGE, text)
+
+@Composable
+fun PurpleBox(modifier: Modifier = Modifier, text: String = "") = BaseBox(modifier, ColorPalette.PURPLE, text)
+
+@Composable
+fun ExemploLayoutAdaptativo() {
+    val configuration = LocalConfiguration.current
+    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        val maxWidth = maxWidth
+
+        if (isLandscape) {
+            Row(modifier = Modifier.fillMaxWidth().requiredHeight(maxHeight / 2).background(Color.DarkGray).padding(5.dp)) {
+
+                GreenBox(modifier = Modifier.weight(1f))
+                BlueBox(modifier = Modifier.weight(1f))
+                RedBox(modifier = Modifier.weight(1f))
+
+            }
+        } else { // Portrait
+            Column(modifier = Modifier.requiredWidth(maxWidth / 2).background(Color.DarkGray).padding(5.dp)) { // Limita a largura da coluna
+                RedBox()
+                BlueBox()
+                GreenBox()
+                OrangeBox()
+                PurpleBox()
+            }
+        }
+    }
+
+}
+
+@Preview(heightDp = 150, widthDp = 300, showBackground = true)
+@Composable
+private fun ExemploAdaptativoLandscapePreview() {
+    ExemploLayoutAdaptativo()
+}
+
+@Preview(heightDp = 300, widthDp = 150, showBackground = true)
+@Composable
+private fun ExemploAdaptativoPortraitPreview() {
+    ExemploLayoutAdaptativo()
+}
+----
+
+image::23-layout-adaptativo.png[]
+
+* **`Spacer`:** Um composable que cria um espaço vazio. Útil para adicionar espaçamento flexível entre elementos.
+
+.Exemplo
+[source, kotlin]
+----
+    Row {
+        Text("Texto 1")
+        Spacer(modifier = Modifier.weight(1f)) //espaço flexível
+        Text("Texto 2")
+    }
+----
+
+*   **`wrapContentWidth`, `wrapContentHeight`, `wrapContentSize`:**  Esses modifiers permitem que um composable se ajuste ao tamanho de seu conteúdo, em vez de preencher o espaço disponível.
+
+== Componentes de Interface no Jetpack Compose
+
+O Jetpack Compose oferece uma ampla variedade de componentes de interface, desde elementos básicos como botões e textos até componentes mais complexos como menus suspensos e barras de navegação.  Estes componentes, combinados com o sistema de layouts e modificadores, permitem a construção de interfaces ricas e interativas.
+
+=== Componentes Fundamentais
+
+*   **`Text`:** Exibe texto na interface.  O estilo do texto pode ser customizado utilizando o `TextStyle`, permitindo controlar a fonte, tamanho, cor e outros atributos.
+
+*   **`Button`:**  Um botão clicável que executa uma ação quando pressionado.  Existem diferentes tipos de botões, como `ElevatedButton`, `FilledTonalButton`, `OutlinedButton` e `TextButton`, cada um com uma aparência distinta.
+
+*   **`Image`:** Exibe imagens na interface.  Suporta diversos formatos de imagem e permite o ajuste de tamanho e escala.
+
+*   **`TextField`:** Permite a entrada de texto pelo usuário.  Oferece recursos como rótulos, dicas e validação de entrada.  As variantes `OutlinedTextField` e `FilledTextField` fornecem diferentes estilos visuais.
+
+=== Componentes de Material Design
+
+O Jetpack Compose integra-se perfeitamente com o Material Design, oferecendo componentes pré-construídos que seguem as diretrizes de design do Google.  Alguns exemplos incluem:
+
+*   **`Card`:**  Um contêiner para exibir informações agrupadas, com diferentes estilos como `ElevatedCard`, `OutlinedCard`.
+
+*   **`TopAppBar`:** Uma barra superior para exibir o título do aplicativo e ações.
+
+*   **`BottomAppBar`:**  Uma barra inferior para navegação ou ações contextuais.
+
+*   **`NavigationBar`:** Uma barra de navegação inferior para alternar entre diferentes seções do aplicativo.
+
+*   **`TabRow`:** Permite a navegação por abas.
+
+*   **`AlertDialog`:** Exibe diálogos de alerta para o usuário.
+
+*   **`LinearProgressIndicator` e `CircularProgressIndicator`:**  Indicadores de progresso para exibir o andamento de tarefas.
+
+*   **`Slider`:** Permite ao usuário selecionar um valor dentro de um intervalo.
+
+.Exemplo de Componentes
+[source,kotlin]
+----
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.Button
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Slider
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MainScreen() {
+
+    var sliderPosition by remember { mutableStateOf(0f) }
+    var text by remember { mutableStateOf("") }
+
+
+    Scaffold(
+        topBar = {
+            TopAppBar(title = { Text("Componentes Compose") })
+        }
+    ) { innerPadding ->
+
+        LazyColumn(
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize(),
+
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+
+
+        ) {
+
+            item { Text("Olá, este é um exemplo com diversos componentes!", fontSize = 18.sp) }
+
+            item { Button(onClick = { /*TODO*/ }) { Text("Botão") } }
+            item {
+                OutlinedTextField(
+                    value = text,
+                    onValueChange = { text = it },
+                    label = { Text("Campo de Texto") }
+                )
+
+            }
+
+
+            item {
+                ElevatedCard(elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp)) {
+
+                    Column(modifier = Modifier.padding(16.dp)) {
+
+                        Text(text = "Este é um Card", fontSize = 16.sp)
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(text = "Informações Adicionais", fontSize = 14.sp)
+
+                    }
+
+
+                }
+            }
+
+            item {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("Slider:")
+                    Spacer(Modifier.width(8.dp))
+                    Slider(value = sliderPosition, onValueChange = { sliderPosition = it })
+                }
+            }
+
+            item {
+                Image(
+                    painter = painterResource(id = R.drawable.ic_launcher_foreground), // Substitua pelo seu recurso de imagem
+                    contentDescription = "Imagem de Exemplo",
+                    modifier = Modifier.size(100.dp)
+                )
+            }
+
+            val range = 1..100
+
+            items(range.count()) { index ->
+                Text(text = "- Item da Lista ${index + 1}")
+            }
+
+        }
+
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun DefaultPreview() {
+    MaterialTheme {
+        MainScreen()
+    }
+}
+----
+
+image::24-components.png[width=50%]
+
+== Exercício: Calculadora com Layouts Avançados e Botões Customizados em Jetpack Compose
+
+Este exercício visa aprimorar o design e a funcionalidade da calculadora desenvolvida anteriormente, utilizando os conceitos de layouts abordados neste capítulo e recursos adicionais para uma interface mais rica e adaptável.
+
+**Requisitos:**
+
+1. **Cores Distintas por Tipo de Botão:** Use cores diferentes para diferenciar visualmente os tipos de botões (números, operadores, funções especiais).  Sugestão: números em cinza escuro, operadores em laranja, funções especiais em azul.
+
+2. **Tamanhos Variáveis de Botões:** O botão "=" deve ocupar duas colunas, e o botão "0" duas linhas na orientação portrait.
+
+3. **Botões Opcionais:** Implemente botões para funções especiais (ex: raiz quadrada, porcentagem) que podem ser exibidos ou ocultados através de um botão de alternância "Mostrar Funções Especiais".
+
+4. **Layout Adaptativo:** O layout deve se adaptar às orientações portrait e landscape. Em landscape, os botões de funções especiais devem ser exibidos ao lado dos botões numéricos e operadores.
+
+5. **Botões com Bordas Arredondadas:** Crie os botões com bordas arredondadas utilizando `Box` e `Modifier.clip` com `RoundedCornerShape`.
+
+6. **Implementação da Lógica da Calculadora:** Integre a lógica da calculadora à nova interface.
+
+
+**Dicas de Implementação:**
+
+* Utilize `Row` e `Column` para organizar os botões em linhas e colunas.
+* Use `ConstraintLayout` para um posicionamento mais flexível dos elementos, especialmente na orientação landscape.
+* Utilize `Modifier.weight` para distribuir o espaço disponível entre os componentes de forma proporcional.
+* Crie os botões customizados com `Box`, aplicando `Modifier.clip(RoundedCornerShape(tamanho))` para as bordas arredondadas, `Modifier.background(cor)` para a cor de fundo e posicione o `Text` do botão centralizado usando `Modifier.align(Alignment.Center)`.
+* Use `AnimatedVisibility` para controlar a visibilidade dos botões opcionais de funções especiais.
+* Defina as dimensões e tamanhos de texto usando `dp` e `sp` para garantir a adaptabilidade a diferentes telas.
+
+**Exemplo de Implementação de um Botão com Borda Arredondada:**
+
+[source,kotlin]
+----
+@Composable
+fun RoundedButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    backgroundColor: Color = Color.Gray, // Cor de fundo padrão
+    textColor: Color = Color.White // Cor do texto padrão
+) {
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(backgroundColor)
+            .clickable { onClick() }
+            .padding(8.dp)
+    ) {
+        Text(
+            text = text,
+            color = textColor,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.align(Alignment.Center)
+        )
+    }
+}
+----
+
+**Bônus:**
+
+* Adicione animações suaves às transições de layout e visibilidade dos botões.
+* Implemente um histórico de cálculos.
+* Utilize o Material Design para estilizar a calculadora.
+
+**Observações:**
+
+* Este exercício tem como objetivo a prática de layouts, customização de componentes e adaptação a diferentes orientações de tela em Jetpack Compose.
+* Consulte a documentação oficial do Jetpack Compose para mais detalhes e exemplos.
+* Certifique-se de implementar a lógica da calculadora e adaptar o código ao seu projeto.
