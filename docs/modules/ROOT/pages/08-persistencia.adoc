@@ -1,0 +1,627 @@
+= Persistência com Jetpack Compose
+
+Neste capítulo, exploraremos diferentes abordagens para persistir dados em aplicativos Android construídos com Jetpack Compose. A persistência de dados é crucial para garantir que as informações relevantes sejam mantidas mesmo após o aplicativo ser fechado ou o dispositivo reiniciado.
+
+Existem várias maneiras de persistir dados em um aplicativo Android. A escolha da melhor abordagem depende das necessidades específicas do seu projeto, como o tipo e volume de dados a serem armazenados, bem como a complexidade da estrutura de dados. Algumas opções populares incluem:
+
+- **`DataStore`**: Ideal para pequenos conjuntos de dados e preferências do usuário, oferecendo uma solução simples e eficiente baseada em key-value. Permite o armazenamento de dados tipados de forma segura.
+- **`Room`**: Uma biblioteca de persistência robusta que fornece uma camada de abstração sobre o SQLite, simplificando o acesso e gerenciamento de bancos de dados. Recomendado para dados relacionais mais complexos.
+- **`Proto DataStore`**: Similar ao `DataStore`, mas utiliza buffers de protocolo para serializar os dados, sendo mais eficiente para dados estruturados complexos.
+- **Armazenamento de arquivos**: Útil para armazenar dados brutos, como imagens ou arquivos de texto. Oferece flexibilidade, mas requer gerenciamento manual da estrutura dos dados.
+
+== Implementando `DataStore` com Jetpack Compose
+
+O `DataStore` é uma excelente opção para armazenar pequenas quantidades de dados, como as preferências do usuário. Ele oferece uma API simples e segura para leitura e gravação de dados.
+
+.Exemplo: DataStore
+[source,kotlin]
+----
+val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
+
+@Composable
+fun SettingsScreen(context: Context) {
+    val scope = rememberCoroutineScope()
+    val dataStore = context.dataStore
+    val exampleValue = dataStore.data
+        .map { preferences ->
+            preferences["example_key"] ?: false // Valor padrão
+        }.collectAsState(initial = false)
+
+    Column {
+        Checkbox(
+            checked = exampleValue.value,
+            onCheckedChange = { newValue ->
+                scope.launch {
+                    dataStore.edit { settings ->
+                        settings["example_key"] = newValue
+                    }
+                }
+            }
+        )
+        Text("Exemplo de valor: ${exampleValue.value}")
+    }
+}
+----
+
+Neste exemplo, demonstramos como usar o `DataStore` para armazenar um valor booleano. A função `SettingsScreen` utiliza um `Checkbox` para permitir que o usuário altere o valor, que é então persistido usando o `DataStore`.
+
+O `rememberCoroutineScope()` é uma função fornecida pelo Jetpack Compose que cria e lembra um escopo de corrotina vinculado ao ciclo de vida da composição.
+Este escopo é útil para lançar corrotinas em um contexto que será automaticamente cancelado e limpo quando o componente composable for removido do layout (ou seja, quando ele sair da composição).
+
+No exemplo em questão, usamos o `rememberCoroutineScope()` para obter um escopo dentro da função composable, que é então usado para gerenciar a execução de corrotinas, como no momento de editar os valores do `DataStore`.
+Isso garante que a operação de escrita seja realizada de forma assíncrona sem bloquear o thread principal (UI thread), enquanto também permite que o escopo seja cancelado quando o componente `SettingsScreen` for desmontado.
+
+Por exemplo:
+
+[source,kotlin]
+----
+val scope = rememberCoroutineScope()
+
+scope.launch {
+    // Operação assíncrona, como salvar no DataStore
+}
+----
+
+Aqui, o uso do `scope.launch` permite iniciar uma corrotina para realizar a edição dos valores no `DataStore` de maneira segura e eficiente.
+
+=== Implementando `Room` com Jetpack Compose
+
+A persistência de dados desempenha um papel essencial no desenvolvimento de aplicativos Android. Entre as opções de armazenamento disponíveis, a biblioteca **Room** se destaca por oferecer uma solução robusta e eficiente para gerenciar bancos de dados locais baseados em SQLite. Neste capítulo, veremos os fundamentos da biblioteca `Room`, suas principais vantagens e os passos iniciais para utilizá-la em um projeto.
+
+== O que é o Room?
+
+O **Room** é uma biblioteca de persistência desenvolvida pela equipe do Jetpack, que atua como uma camada de abstração sobre o SQLite. Ele simplifica as tarefas de manipulação de dados utilizando APIs amigáveis para consultas, inserções, atualizações e remoções. Além disso, oferece recursos avançados de verificação de esquema em tempo de compilação e integração com componentes reativos, como `LiveData` e `Flow`.
+
+=== Por que usar o Room?
+
+Embora o SQLite seja uma solução poderosa para bancos de dados locais, ele requer a escrita de consultas SQL complexas e pode ser suscetível a erros em tempo de execução, especialmente ao lidar com alterações no esquema do banco. O **Room** resolve essas questões fornecendo uma abordagem declarativa e segura em tempo de compilação.
+
+**Principais Benefícios do Room**:
+- **Abstração do SQLite**: Você pode trabalhar com objetos e classes ao invés de usar comandos SQL manualmente.
+- **Verificação de Esquema em Tempo de Compilação**: Qualquer alteração no esquema do banco de dados é verificada durante a compilação, minimizando erros.
+- **Integração com Corrotinas e Flow**: Oferece suporte integrado a programação assíncrona, facilitando a execução de operações em threads secundárias.
+- **Migração de Banco de Dados**: Simplifica o processo de migração ao atualizar o esquema do banco.
+- **Observação de Dados**: Integração com `Flow` e `LiveData` para atualização automática de dados na interface do usuário (UI).
+
+== Componentes Principais do Room
+
+=== 1. Entity (Entidade)
+
+As **entidades** representam tabelas no banco de dados. No nosso exemplo, a tabela `tasks` é representada pela classe `Task`:
+
+[source,kotlin]
+----
+@Entity(tableName = "tasks")
+data class Task(
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val title: String,
+    val isCompleted: Boolean = false
+)
+----
+
+- **`@Entity`**: Declara a tabela chamada `tasks`.
+- **Colunas**: Os atributos `id`, `title` e `isCompleted` são mapeados para colunas no banco de dados.
+- **@PrimaryKey**: Marca o atributo `id` como chave primária e o configura para autoincremento.
+
+Cada instância da classe `Task` representa uma entrada (linha) na tabela.
+
+=== 2. DAO (Data Access Object)
+
+O **DAO** define os métodos para acessar e manipular os dados da tabela `tasks`. Nosso **TaskDao** é responsável por fornecer esses métodos:
+
+[source,kotlin]
+----
+@Dao
+interface TaskDao {
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertTask(task: Task)
+
+    @Delete
+    suspend fun deleteTask(task: Task)
+
+    @Query("SELECT * FROM tasks")
+    fun getAllTasks(): kotlinx.coroutines.flow.Flow<List<Task>>
+}
+----
+
+- **`@Insert`**: Insere um objeto `Task` no banco de dados. Em caso de conflito (mesmo ID), substituirá o registro existente.
+- **`@Delete`**: Remove um objeto `Task` do banco de dados.
+- **`@Query`**: Retorna todas as tarefas (`tasks`) como um `Flow`, o que permite observar alterações assíncronas nos dados.
+
+=== 3. Database
+
+O **Database** conecta as entidades e DAOs, fornecendo uma abstração geral do banco de dados. Aqui está a classe `TaskDatabase`:
+
+[source,kotlin]
+----
+@Database(entities = [Task::class], version = 1, exportSchema = false)
+abstract class TaskDatabase : RoomDatabase() {
+    abstract fun taskDao(): TaskDao
+}
+----
+
+- A anotação `@Database` define quais entidades (como `Task`) e versão do banco de dados são usadas.
+- O DAO correspondente (`taskDao`) é exposto pela função abstrata `taskDao()`.
+
+==== Ciclo de Vida do Banco de Dados Room
+
+O banco de dados `TaskDatabase`, assim como outros bancos criados com o Room, é criado, destruído ou recriado em cenários específicos, garantindo segurança e flexibilidade para o gerenciamento do ciclo de vida.
+
+O comportamento do banco de dados durante o ciclo de vida está associado ao processo de inicialização ou atualização. Aqui estão os principais cenários:
+
+- **Criado**: O banco de dados é criado na primeira vez em que a instância é inicializada usando o método `Room.databaseBuilder`. Isso ocorre quando:
+
+- O aplicativo é executado pela primeira vez.
+- O arquivo do banco de dados, identificado por seu nome (neste caso, `task_database`), ainda não existe no armazenamento.
+
+- **Destruído**: O banco de dados é destruído quando o arquivo correspondente no armazenamento do dispositivo (geralmente armazenado em `/data/data/<pacote-do-app>/databases`) é removido, como nos seguintes casos:
+
+- O aplicativo é desinstalado, causando a exclusão automática dos arquivos associados.
+- O arquivo do banco de dados é manualmente excluído ou modificado pelo usuário ou por alguma operação interna.
+
+- **Recriado**: O banco de dados é recriado automaticamente pelo Room nos seguintes casos:
+
+1. **Alterações no esquema sem fornecimento de estratégia de migração**:
+
+- Sempre que ocorre uma alteração na versão do banco (definida pelo campo `version` em `TaskDatabase`), o Room tentará migrar os dados existentes.
+- Caso estratégias de migração apropriadas não sejam acrescentadas ao builder do banco de dados, o Room descarta os dados antigos e cria um novo banco vazio.
+
+     **Exemplo**:
+     ```kotlin
+     Room.databaseBuilder(
+         context,
+         TaskDatabase::class.java,
+         "task_database"
+     ).fallbackToDestructiveMigration() // Força recriação sem migração
+     ```
+
+2. **Escolha explícita de recriação**: 
+
+- No método de construção do banco, é possível instruir o Room para recriar o banco sempre que houver alterações nas versões, utilizando `fallbackToDestructiveMigration()`. Essa abordagem é destrutiva e exclui os dados antigos, mas é útil em ambientes de desenvolvimento ou casos em que a persistência total não é prioridade.
+
+==== Considerações sobre Migração
+
+Sempre que o esquema do banco sofre alterações, é recomendável fornecer um plano de migração para preservar os dados de versões anteriores, prevenindo o descarte desnecessário de informações.
+
+Exemplo de estratégia de migração:
+
+[source,kotlin]
+----
+val MIGRATION_1_2 = object : Migration(1, 2) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("ALTER TABLE tasks ADD COLUMN priority INTEGER DEFAULT 0 NOT NULL")
+    }
+}
+----
+
+Este exemplo adiciona uma nova coluna `priority` na tabela `tasks` para versões futuras. Essa migração preserva os dados existentes enquanto adapta o esquema ao formato atualizado.
+
+A migração é configurada no banco com:
+[source,kotlin]
+----
+val database = Room.databaseBuilder(
+    context,
+    TaskDatabase::class.java,
+    "task_database"
+).addMigrations(MIGRATION_1_2).build()
+----
+
+=== 4. Repositório
+
+O **TaskRepository** atua como uma camada intermediária entre o banco de dados e a interface do usuário, encapsulando a lógica de acesso aos dados:
+
+[source,kotlin]
+----
+class TaskRepository(private val taskDao: TaskDao) {
+    val allTasks = taskDao.getAllTasks()
+
+    suspend fun insertTask(task: Task) {
+        taskDao.insertTask(task)
+    }
+
+    suspend fun deleteTask(task: Task) {
+        taskDao.deleteTask(task)
+    }
+}
+----
+
+- `allTasks`: Um fluxo reativo contendo todas as tarefas.
+- `insertTask`: Insere uma nova tarefa no banco de dados.
+- `deleteTask`: Remove uma tarefa existente.
+
+== Configuração e Uso no Projeto
+
+=== Dependências no Gradle
+
+Adicione as dependências do Room:
+
+.Arquivo gradle/libs.versions.toml
+[source,toml]
+----
+[versions]
+kotlin = "2.1.0"  # Necessário atualizar a versão do Kotlin para utilizar a versão mais recente do KSP
+# ... Demais versões omitidas
+ksp = "2.1.0-1.0.29"
+room = "2.6.1"
+
+
+[libraries]
+# ... Demais bibliotecas omitidas
+androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
+androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
+androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
+
+[plugins]
+# ... Demais plugins omitidos
+google-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+----
+
+.Arquivo app/build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    // ...
+    alias(libs.plugins.google.ksp)
+}
+
+dependencies {
+    implementation(libs.androidx.room.runtime) // Runtime do Room
+    ksp(libs.androidx.room.compiler) // Room Annotation Processor -> gera automaticamente código DAO
+    implementation(libs.androidx.room.ktx) // Extensão do Room para Coroutines
+
+    // ...
+}
+----
+
+=== Criando a Instância do Banco de Dados
+
+A instância do banco de dados `TaskDatabase` deve ser criada como um singleton:
+
+[source,kotlin]
+----
+val database: TaskDatabase by lazy {
+    Room.databaseBuilder(
+        context = applicationContext,
+        TaskDatabase::class.java,
+        "task_database"
+    ).build()
+}
+----
+
+Aqui:
+
+1. O contexto da aplicação é passado para criar o banco.
+2. A classe `TaskDatabase` define as configurações da plataforma Room.
+3. `"task_database"` é o nome do arquivo do banco de dados.
+
+=== Interagindo com os Dados no Compose
+
+Agora vamos integrar o banco de dados ao Jetpack Compose. Usaremos o repositório para gerenciar tarefas e exibi-las na interface.
+
+==== Exibindo Tarefas (Lista)
+
+O componente composable para mostrar a lista de tarefas utiliza o fluxo de dados do repositório:
+
+[source,kotlin]
+----
+@Composable
+fun TaskListScreen(taskRepository: TaskRepository) {
+    // Observar o fluxo de tarefas
+    val tasks by taskRepository.allTasks.collectAsState(initial = emptyList())
+    
+    LazyColumn {
+        items(tasks) { task ->
+            TaskItem(task = task)
+        }
+    }
+}
+
+@Composable
+fun TaskItem(task: Task) {
+    Row(modifier = Modifier.padding(8.dp)) {
+        Checkbox(
+            checked = task.isCompleted,
+            onCheckedChange = { /* Implementar lógica de atualização */ }
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(text = task.title)
+    }
+}
+----
+
+- `collectAsState`: Converte o fluxo `allTasks` em um `State` para ser usado no Compose.
+- `LazyColumn`: Exibe tarefas dinamicamente em uma lista.
+
+==== Adicionando uma Nova Tarefa
+
+Criaremos uma tela composable para inserir tarefas:
+
+[source,kotlin]
+----
+@Composable
+fun AddTaskScreen(taskRepository: TaskRepository) {
+    val scope = rememberCoroutineScope()
+    var taskTitle by remember { mutableStateOf("") }
+
+    Column(modifier = Modifier.padding(16.dp)) {
+        TextField(
+            value = taskTitle,
+            onValueChange = { taskTitle = it },
+            label = { Text("Título da Tarefa") }
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(onClick = {
+            if (taskTitle.isNotEmpty()) {
+                scope.launch {
+                    taskRepository.insertTask(Task(title = taskTitle))
+                    taskTitle = ""
+                }
+            }
+        }) {
+            Text("Adicionar Tarefa")
+        }
+    }
+}
+----
+
+- O campo `TextField` coleta o título da tarefa do usuário.
+- Quando o botão é clicado, a tarefa é inserida no banco usando `taskRepository.insertTask`.
+
+==== Deletando uma Tarefa
+
+Para permitir a exclusão de tarefas, adicionamos um botão de "Excluir":
+
+[source,kotlin]
+----
+@Composable
+fun TaskItem(task: Task, onDelete: (Task) -> Unit) {
+    Row(modifier = Modifier
+        .padding(8.dp)
+        .fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+        Text(text = task.title)
+        IconButton(onClick = { onDelete(task) }) {
+            Icon(imageVector = Icons.Default.Delete, contentDescription = "Delete Task")
+        }
+    }
+}
+
+@Composable
+fun TaskListScreen(taskRepository: TaskRepository) {
+    val tasks by taskRepository.allTasks.collectAsState(initial = emptyList())
+    val scope = rememberCoroutineScope()
+
+    LazyColumn {
+        items(tasks) { task ->
+            TaskItem(task = task, onDelete = {
+                scope.launch {
+                    taskRepository.deleteTask(it)
+                }
+            })
+        }
+    }
+}
+----
+
+== Exercício Prático: Implementação da Conclusão de Tarefas e Filtro de Tarefas Concluídas
+
+Neste exercício, você será desafiado a melhorar o aplicativo adicionando duas novas funcionalidades:
+
+1. Implementar a **conclusão de uma tarefa**, permitindo que o status de cada tarefa (concluída ou não) seja atualizado.
+2. Adicionar um **filtro na tela inicial** para alternar entre a exibição de todas as tarefas ou apenas as tarefas concluídas.
+
+=== Requisitos
+
+- A funcionalidade de conclusão de tarefa deve incluir:
+
+1. Um **Checkbox** na lista de tarefas para alterar o status (`isCompleted`) da tarefa.
+2. Uma forma de persistir essa alteração no banco de dados.
+
+- O filtro de tarefas deve permitir:
+
+1. Alternar entre exibir todas as tarefas ou apenas as tarefas concluídas.
+2. Usar uma **consulta no banco de dados** para obter apenas as tarefas concluídas.
+
+=== Passos
+
+1. **Atualizar o Banco de Dados**
+Você precisará ajustar o DAO e o Repositório para incluir as funcionalidades de **concluir tarefas** e **obter tarefas concluídas**.
+
+2. **Adicionar Checkbox de Conclusão**
+Na lista de tarefas exibida na tela inicial, adicione um **Checkbox** próximo ao título de cada tarefa para que o usuário possa marcar (ou desmarcar) a tarefa como concluída.
+
+3. **Persistir Alterações no Banco**
+Garanta que, ao interagir com o checkbox, o status da tarefa seja atualizado no banco de dados.
+
+4. **Implementar o Filtro de Tarefas**
+Adicione um botão ou outro componente na tela inicial que permita alternar entre:
+- Exibir todas as tarefas.
+- Exibir apenas as tarefas concluídas.
+
+5. **Ajustar a Interface**
+Altere a função que carrega e exibe as tarefas na tela inicial para levar em consideração o estado do filtro (todas ou concluídas).
+
+==== Dicas
+
+- Use o `Room` para persistir alterações no estado da tarefa.
+- Use o **Compose State** (`mutableStateOf`) ou **Flow** para reagir às mudanças no filtro.
+- Certifique-se de gerenciar corretamente as operações assíncronas usando corrotinas.
+
+.Solução do Exercício
+[%collapsible]
+====
+
+**Etapa 1: Atualizar o DAO**:
+
+No arquivo `TaskDao.kt`, adicione os seguintes métodos:
+
+[source,kotlin]
+----
+@Dao
+interface TaskDao {
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertTask(task: Task)
+
+    @Delete
+    suspend fun deleteTask(task: Task)
+
+    @Query("SELECT * FROM tasks") // Mantém a consulta existente
+    fun getAllTasks(): kotlinx.coroutines.flow.Flow<List<Task>>
+
+    @Query("SELECT * FROM tasks WHERE isCompleted = 1") // Consulta as tarefas concluídas
+    fun getCompletedTasks(): kotlinx.coroutines.flow.Flow<List<Task>>
+
+    @Update // Permite atualização das tarefas
+    suspend fun updateTask(task: Task)
+}
+----
+
+**Etapa 2: Atualizar o Repositório**
+
+No `TaskRepository.kt`, inclua as novas funções/métodos para gerenciar as tarefas concluídas:
+
+[source,kotlin]
+----
+class TaskRepository(private val taskDao: TaskDao) {
+    val allTasks = taskDao.getAllTasks()
+    val completedTasks = taskDao.getCompletedTasks()
+
+    suspend fun insertTask(task: Task) {
+        taskDao.insertTask(task)
+    }
+
+    suspend fun deleteTask(task: Task) {
+        taskDao.deleteTask(task)
+    }
+
+    suspend fun updateTask(task: Task) { // Atualiza o status de conclusão
+        taskDao.updateTask(task)
+    }
+}
+----
+
+**Etapa 3: Atualizar o ViewModel**
+
+No arquivo `TaskViewModel.kt`, adicione:
+
+- Um método para atualizar a tarefa.
+- Gerencie a leitura das tarefas concluídas.
+
+[source,kotlin]
+----
+class TaskViewModel(private val repository: TaskRepository) : ViewModel() {
+
+    val allTasks = repository.allTasks
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    val completedTasks = repository.completedTasks
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    fun addTask(task: Task) {
+        viewModelScope.launch {
+            repository.insertTask(task)
+        }
+    }
+
+    fun removeTask(task: Task) {
+        viewModelScope.launch {
+            repository.deleteTask(task)
+        }
+    }
+
+    fun updateTask(task: Task) { // Atualiza o status de uma tarefa
+        viewModelScope.launch {
+            repository.updateTask(task)
+        }
+    }
+}
+----
+
+**Etapa 4: Adicionar Checkbox para Concluir Tarefas**
+
+Atualize o `TaskItem.kt` para incluir o `Checkbox` que alterna o estado de conclusão:
+
+[source,kotlin]
+----
+@Composable
+fun TaskItem(task: Task, onDelete: () -> Unit, onCompletionChange: (Task) -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Checkbox(
+            checked = task.isCompleted,
+            onCheckedChange = { isChecked ->
+                onCompletionChange(task.copy(isCompleted = isChecked))
+            }
+        )
+        Text(
+            text = task.title,
+            modifier = Modifier.weight(1f),
+            style = MaterialTheme.typography.bodyLarge
+        )
+        IconButton(onClick = onDelete) {
+            Icon(Icons.Default.Delete, contentDescription = "Delete")
+        }
+    }
+}
+----
+
+**Etapa 5: Atualizar a HomeScreen**
+
+Atualize a `HomeScreen.kt` para permitir a alternância entre a exibição de todas as tarefas e apenas as concluídas:
+
+[source,kotlin]
+----
+@Composable
+fun HomeScreen(taskViewModel: TaskViewModel, navController: NavHostController) {
+    val allTasks by taskViewModel.allTasks.collectAsState()
+    val completedTasks by taskViewModel.completedTasks.collectAsState()
+    var showCompleted by remember { mutableStateOf(false) }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Task List") },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary
+                ),
+                actions = {
+                    // Botão para alternar filtro
+                    TextButton(onClick = { showCompleted = !showCompleted }) {
+                        Text(
+                            if (showCompleted) "Mostrar Todas" else "Mostrar Concluídas",
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
+                }
+            )
+        },
+        floatingActionButton = {
+            FloatingActionButton(onClick = { navController.navigate("addTask") }) {
+                Icon(Icons.Default.Add, contentDescription = "Add Task")
+            }
+        },
+        floatingActionButtonPosition = FabPosition.End
+    ) { padding ->
+        val currentTasks = if (showCompleted) completedTasks else allTasks
+
+        LazyColumn(modifier = Modifier.padding(padding)) {
+            items(currentTasks) { task ->
+                TaskItem(
+                    task = task,
+                    onDelete = {
+                        taskViewModel.removeTask(task)
+                    },
+                    onCompletionChange = { updatedTask ->
+                        taskViewModel.updateTask(updatedTask)
+                    }
+                )
+            }
+        }
+    }
+}
+----

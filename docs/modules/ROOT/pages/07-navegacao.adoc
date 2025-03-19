@@ -1,0 +1,474 @@
+= Navegação no Jetpack Compose
+
+Este capítulo explora o uso do framework **Jetpack Compose** para implementar navegação em aplicativos Android. Vamos cobrir desde os fundamentos, como configurar as dependências, até práticas mais avançadas, como navegação entre telas, uso de argumentos e integração de componentes do Material Design.
+
+== Introdução
+
+A navegação no Jetpack Compose utiliza componentes simples e declarativos que permitem configurar rotas (as telas do aplicativo), gerenciar pilhas de navegação (back stack) e até mesmo passar dados entre telas. Componentes como `NavHost`, `NavController` e `composable` tornam essa navegação eficiente e alinhada ao padrão de **Unidirectional Data Flow (UDF)** recomendado pelo Jetpack Compose.
+
+== Configuração do Projeto
+
+Antes de começar, configure o projeto para utilizar o recurso de navegação do Jetpack Compose. Adicione a dependência necessária no arquivo `build.gradle` (módulo do app):
+
+.Arquivo gradle/libs.versions.toml
+[source,toml]
+----
+[versions]
+# ... Demais versões omitidas
+navigationCompose = "2.8.9"
+
+
+[libraries]
+# ... Demais bibliotecas omitidas
+androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
+----
+
+.Arquivo app/build.gradle.kts
+[source,kotlin]
+----
+dependencies {
+    implementation(libs.androidx.navigation.compose)
+
+    // ...
+}
+----
+
+== Componentes Principais da Navegação no Jetpack Compose
+
+No Jetpack Compose, o sistema de navegação foi projetado para ser modular, simples e reativo, se alinhando ao padrão declarativo do framework. Para criar e gerenciar a navegação no seu aplicativo, é necessário entender os componentes principais que desempenham funções específicas:
+
+1. **NavController**
+2. **NavHost**
+3. **Composable Destinations**
+
+Além disso, para navegações baseadas no Jetpack Compose, o **NavHostController** é uma extensão fundamental do **NavController**, oferecendo funcionalidade adicional para uso exclusivo com o `NavHost`.
+
+=== 1. NavController
+
+O **NavController** é o componente central do sistema de navegação. Ele gerencia a pilha de navegação (back stack) e é responsável por todas as operações de navegação entre telas. É usado para iniciar, manipular e controlar o estado da navegação.
+
+Principais funções do **NavController**:
+
+- Gerenciar a pilha de destinos (back stack), garantindo que a navegação entre telas siga uma ordem consistente.
+- Permitir navegação direta para destinos específicos com a função `navigate(route: String)`.
+- Possibilitar remoção de destinos da pilha, como ao "voltar" usando `popBackStack()`.
+- Gerenciar argumentos que são passados entre telas.
+
+Por padrão, o **NavController** deve ser inicializado usando `rememberNavController()` em uma função composable. Isso garante que ele seja mantido no estado de composição e esteja vinculado ao ciclo de vida do componente.
+
+.Exemplo básico representando um **NavController**:
+[source,kotlin]
+----
+val navController = rememberNavController()
+navController.navigate("profile") // Navega para a tela de perfil
+----
+
+Além de funções básicas de navegação, o **NavController** oferece suporte para eventos de ciclo de vida e permite escutar alterações no destino atual usando `currentBackStackEntry`.
+
+=== 2. NavHostController
+
+O **NavHostController** é uma subclasse especializada do **NavController**, projetada especificamente para ser usada com o **NavHost** no Jetpack Compose.
+
+Diferença Principal:
+
+Enquanto o **NavController** é genérico e atua como um gerenciador de navegação, o **NavHostController** adiciona funcionalidades para interpretar destinos definidos no **NavHost**, vinculando-os diretamente às funções composables.
+
+Características do **NavHostController**:
+
+- Vincula diretamente cada rota definida no **NavHost** a uma função composable correspondente.
+- Suporta recomposição declarativa, essencial para o paradigma do Compose.
+- Armazena e processa `NavBackStackEntry` de forma eficiente, garantindo que o estado de navegação esteja integrado ao ciclo de vida do Compose.
+
+Você raramente cria uma instância do **NavHostController** diretamente. Sempre que `rememberNavController()` é chamado, ele retorna um objeto do tipo **NavHostController** configurado para trabalhar com o Compose.
+
+.Exemplo de uso em um `NavHost`:
+[source,kotlin]
+----
+@Composable
+fun AppNavHost() {
+    val navController = rememberNavController() // NRetorna um NavHostController
+
+    NavHost(
+        navController = navController,
+        startDestination = "home"
+    ) {
+        composable("home") { HomeScreen(navController) }
+        composable("profile") { ProfileScreen(navController) }
+    }
+}
+----
+
+O **NavHostController** trabalha como uma versão mais especializada do **NavController**, sendo ideal para navegação declarativa no Compose. Ele suporta integração completa com o `NavHost` e mantém o estado de navegação integrado com a composição.
+
+=== 3. NavHost
+
+O **NavHost** é o componente que define os destinos e o mapa de rotas da navegação no Jetpack Compose. Ele conecta o **NavController** (ou **NavHostController**) às funções composables utilizadas como telas no aplicativo.
+
+Principais Características:
+
+- Define a estrutura de rotas e destinos do aplicativo.
+- Determina a tela inicial por meio do parâmetro `startDestination`.
+- Gerencia automaticamente a composição e recomposição de telas baseadas na rota navegada.
+
+Cada destino no **NavHost** é registrado usando a função composable fornecida. O destino é identificado por uma string (a rota) que o **NavController** utiliza ao navegar.
+
+.Exemplo de Estrutura básica de um **NavHost**:
+[source, kotlin]
+----
+NavHost(
+    navController = navController,
+    startDestination = "home"
+) {
+    composable("home") { HomeScreen(navController) }
+    composable("profile") { ProfileScreen(navController) }
+}
+----
+
+Nesse exemplo:
+
+- `"home"` e `"profile"` são as rotas.
+- Cada rota está vinculada a uma função composable que renderiza sua respectiva tela.
+
+O **NavHost** também permite trabalhar com rotas dinâmicas, como destinos com argumentos.
+
+=== 4. Composable Destinations
+
+Cada rota no sistema é vinculada a uma função composable, conhecida como **Composable Destination**. Esse componente representa individualmente uma tela no aplicativo.
+
+Características:
+
+- Criado usando a anotação `@Composable`.
+- Associado à rota correspondente por meio do **NavHost**.
+- Pode receber argumentos (parâmetros) fornecidos pelo **NavController**.
+
+.Exemplo de um destino composable:
+[source,kotlin]
+----
+@Composable
+fun HomeScreen(navController: NavController) {
+    Button(onClick = { navController.navigate("profile") }) {
+        Text("Ir para o Perfil")
+    }
+}
+----
+
+No exemplo acima:
+
+- A tela `HomeScreen` é um destino registrado no **NavHost**.
+- Possui um botão que, ao clicar, navega para o destino da rota `"profile"`.
+
+==== Navegação com Argumentos
+
+Uma **Composable Destination** pode utilizar argumentos (parâmetros) passados na rota quando o **NavController** executa uma navegação. Os argumentos são extraídos do back stack por meio do `arguments` da `NavBackStackEntry`.
+
+[source,kotlin]
+----
+composable("profile/{userId}") { backStackEntry ->
+    val userId = backStackEntry.arguments?.getString("userId")
+    ProfileScreen(userId = userId ?: "Desconhecido")
+}
+----
+
+Nesse caso, a tela `ProfileScreen` pode receber o ID do usuário como um argumento da rota.
+
+== Implementando Navegação Básica para um Aplicativo de Tarefas
+
+=== Passo 1: Configurando o NavHost
+
+O **NavHost** é responsável por registrar as telas e associá-las às suas respectivas rotas. O exemplo a seguir apresenta como configurar um **NavHost** em um projeto básico:
+
+[source, kotlin]
+----
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContent {
+            TodoTheme {
+                TodoApp()
+            }
+        }
+    }
+}
+
+@Composable
+fun TodoApp() {
+    val navController = rememberNavController()
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("To-Do App") },
+                actions = {
+                    IconButton(onClick = { /* Implementar busca */ }) {
+                        Icon(Icons.Default.Search, contentDescription = "Search")
+                    }
+                }
+            )
+        },
+        bottomBar = {
+            BottomBar(navController = navController)
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = {
+                    navController.navigate("addTask") // Navegue para adicionar tarefa
+                },
+                containerColor = MaterialTheme.colorScheme.primary
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Add Task")
+            }
+        },
+        floatingActionButtonPosition = FabPosition.End,
+        contentColor = MaterialTheme.colorScheme.background
+    ) { innerPadding ->
+        NavigationHost(navController = navController, modifier = Modifier.padding(innerPadding))
+    }
+}
+
+@Composable
+fun NavigationHost(navController: NavHostController, modifier: Modifier = Modifier) {
+    NavHost(navController = navController, startDestination = "home", modifier = modifier) {
+        composable("home") { HomeScreen(navController) }
+        composable("profile") { ProfileScreen() }
+        composable("addTask") { AddTaskScreen(navController) }
+    }
+}
+----
+
+No exemplo acima:
+- O **`startDestination`** define a tela inicial.
+- Cada `composable` representa uma tela e é vinculada a uma rota única (`"home"`, `"profile"`).
+
+=== Passo 2: Criando Telas (Destinations)
+
+As telas são construídas com funções `@Composable`. A seguir, implementamos duas telas simples:
+
+A `HomeScreen` exibe um botão que navega para a tela de perfil ao ser clicado:
+
+[source, kotlin]
+----
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.navigation.NavController
+
+@Composable
+fun HomeScreen(navController: NavController) {
+    Button(onClick = { navController.navigate("profile") }) {
+        Text(text = "Ir para o Perfil")
+    }
+}
+----
+
+A `ProfileScreen` exibe um texto simples indicando que o usuário está na tela de perfil:
+
+[source, kotlin]
+----
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+
+@Composable
+fun ProfileScreen() {
+    Text(text = "Bem-vindo ao Perfil!")
+}
+----
+
+=== Passo 3: Navegando Entre Telas
+
+No exemplo acima, a função `navigate` do **NavController** é usada para executar transições entre telas. Por exemplo, no botão da tela inicial, o comando `navController.navigate("profile")` direciona o usuário para a `ProfileScreen`.
+
+== Navegação com Argumentos
+
+Em algumas situações, pode ser necessário passar informações entre telas. Isso pode ser feito utilizando argumentos nas rotas.
+
+=== Passo 1: Definir Argumentos nas Rotas
+
+Adicione o argumento na rota no **NavHost**:
+
+[source, kotlin]
+----
+NavHost(navController = navController, startDestination = "home") {
+    composable("home") { HomeScreen(navController) }
+    composable("profile/{userId}") { backStackEntry ->
+        val userId = backStackEntry.arguments?.getString("userId")
+        ProfileScreen(userId = userId ?: "Desconhecido")
+    }
+}
+----
+
+No exemplo, `{userId}` é o parâmetro definido, e ele será extraído da `backStackEntry`.
+
+=== Passo 2: Atualizar a Tela que Passa Argumentos
+
+Na `HomeScreen`, ao navegar para o perfil, passe o parâmetro `userId` como parte da string da rota:
+
+[source, kotlin]
+----
+@Composable
+fun HomeScreen(navController: NavController) {
+    Button(onClick = { navController.navigate("profile/123") }) {
+        Text(text = "Ir para o Perfil do Usuário 123")
+    }
+}
+----
+
+=== Passo 3: Utilizar o Argumento na Tela de Destino
+
+Atualize a `ProfileScreen` para receber o parâmetro `userId`:
+
+[source, kotlin]
+----
+@Composable
+fun ProfileScreen(userId: String) {
+    Text(text = "Bem-vindo ao Perfil do Usuário $userId!")
+}
+----
+
+== Integração com Bottom Navigation e Fab
+
+Uma boa prática em aplicativos complexos é integrar a navegação com componentes da IU, como barras de navegação inferior (Bottom Navigation). Esse recurso é especialmente útil em aplicativos multi-tela.
+
+No Jetpack Compose, o **Scaffold** é um composable poderoso que fornece uma estrutura para criar layouts consistentes e organizados.
+
+Esse componente permite integrar elementos como `TopAppBar`, `BottomBar`, `FloatingActionButton` e muito mais, facilitando o design de layouts complexos.
+
+Aqui está uma visão detalhada de cada componente dentro do `Scaffold` no `TodoApp`:
+
+[source,kotlin]
+----
+@Composable
+fun TodoApp() {
+    val navController = rememberNavController()
+
+    Scaffold(
+        topBar = {
+            // Configuração do TopAppBar
+            TopAppBar(
+                title = { Text("To-Do App") },
+                actions = {
+                    IconButton(onClick = { /* Implementar busca */ }) {
+                        Icon(Icons.Default.Search, contentDescription = "Buscar")
+                    }
+                }
+            )
+        },
+        bottomBar = {
+            // BottomBar é usada para navegação inferior
+            BottomBar(navController = navController)
+        },
+        floatingActionButton = {
+            // Botão flutuante (FAB) para adicionar novas tarefas
+            FloatingActionButton(
+                onClick = {
+                    navController.navigate("addTask") // Navega para a tela de adicionar tarefa
+                },
+                containerColor = MaterialTheme.colorScheme.primary
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Adicionar Tarefa")
+            }
+        },
+        floatingActionButtonPosition = FabPosition.End, // Posicionamento do FAB
+        contentColor = MaterialTheme.colorScheme.background // Cor de fundo do conteúdo
+    ) { innerPadding ->
+        // Conteúdo principal
+        NavigationHost(navController = navController, modifier = Modifier.padding(innerPadding))
+    }
+}
+----
+
+- **TopAppBar**: O `TopAppBar` é usado para exibir um cabeçalho na parte superior da tela.
+Ele geralmente contém o título do aplicativo e ações importantes, como botões de busca ou opções de menu.
+
+No exemplo:
+
+[source,kotlin]
+----
+TopAppBar(
+    title = { Text("To-Do App") },
+    actions = {
+        IconButton(onClick = { /* Implementar busca */ }) {
+            Icon(Icons.Default.Search, contentDescription = "Buscar")
+        }
+    }
+)
+----
+
+O botão de busca foi adicionado com um `IconButton` que, ao ser clicado, executará a função correspondente.
+
+- **BottomBar**: `BottomBar` é um composable que exibe uma barra inferior, ideal para navegação entre seções ou telas principais. No exemplo ele foi chamado como:
+
+[source,kotlin]
+----
+  BottomBar(navController = navController)
+----
+
+Você pode personalizar esse componente, conforme necessário, para incorporar diferentes ícones ou rótulos.
+
+- **FloatingActionButton (FAB)**: O `FloatingActionButton` é um botão de ação flutuante, ideal para ações principais no aplicativo, como criar ou adicionar novos itens.
+
+[source,kotlin]
+----
+FloatingActionButton(
+    onClick = {
+        navController.navigate("addTask") // Navega para adicionar tarefa
+    },
+    containerColor = MaterialTheme.colorScheme.primary
+) {
+    Icon(Icons.Default.Add, contentDescription = "Adicionar Tarefa")
+}
+----
+
+Aqui, ele é configurado para navegar para a tela `addTask` quando pressionado. O ícone do FAB utilizado é o `Icons.Default.Add`.
+
+- **Content**: Por fim, o slot de conteúdo do `Scaffold` encapsula a lógica principal do aplicativo. No exemplo, utilizamos o `NavigationHost` para gerenciar a navegação entre as telas, e aplicamos o `Modifier.padding` para evitar sobreposição com outros elementos, como `TopAppBar` ou `BottomBar`.
+
+[source,kotlin]
+----
+  NavigationHost(navController = navController, modifier = Modifier.padding(innerPadding))
+----
+
+Com o `Scaffold`, você organiza facilmente a interface do usuário, mantendo-a responsiva e alinhada às diretrizes do Material Design.
+
+.Exemplo: BottomNavigation
+[source,kotlin]
+----
+@Composable
+fun TodoApp() {
+    val navController = rememberNavController()
+
+    Scaffold(
+        bottomBar = {
+            BottomNavigation {
+                BottomNavigationItem(
+                    label = { Text("Home") },
+                    icon = { Icon(Icons.Default.Home, contentDescription = null) },
+                    selected = false,
+                    onClick = { navController.navigate("home") }
+                )
+                BottomNavigationItem(
+                    label = { Text("Perfil") },
+                    icon = { Icon(Icons.Default.AccountCircle, contentDescription = null) },
+                    selected = false,
+                    onClick = { navController.navigate("profile") }
+                )
+            }
+        }
+    ) { innerPadding ->
+        NavHost(navController = navController, startDestination = "home", Modifier.padding(innerPadding)) {
+            composable("home") { HomeScreen(navController) }
+            composable("profile") { ProfileScreen() }
+        }
+    }
+}
+----
+
+A navegação no Jetpack Compose é declarativa, flexível e integrada com outros componentes do Material Design. Ela simplifica a criação de aplicativos dinâmicos e intuitivos.
+
+Segue um resumo dos principais pontos:
+
+- Configure o **NavHost** para utilizar rotas.
+- Utilize **NavController** para navegar entre telas.
+- Passe argumentos com segurança utilizando parâmetros na rota.
+- Integre navegação com outros elementos da IU, como Bottom Navigation e FAB.
+
+Essa abordagem ajuda a criar aplicativos Android modernos, bem-estruturados e altamente responsivos.

@@ -1,0 +1,318 @@
+= Arquitetura de Apps
+
+Neste capítulo, exploraremos as principais arquiteturas utilizadas para estruturar aplicativos Android. Uma arquitetura bem definida é crucial para o desenvolvimento de apps robustos, escaláveis e fáceis de manter. A escolha do padrão depende das necessidades do projeto, da equipe e da complexidade do aplicativo. Abordaremos os padrões mais populares, suas vantagens e desvantagens, além de exemplos práticos para facilitar a compreensão.
+
+== MVC (Model-View-Controller)
+
+O MVC é um dos padrões de arquitetura mais clássicos, conhecido por sua simplicidade e por separar os componentes principais da aplicação. Ele divide a aplicação em três camadas interconectadas:
+- **Model:** Representa os dados da aplicação, encapsulando a lógica de negócio e as regras de acesso a dados (ex: chamar APIs, manipular bancos de dados).
+- **View:** A interface do usuário, que exibe as informações armazenadas no modelo e permite a interação.
+- **Controller:** Serve como um mediador entre Model e View, processando as ações do usuário (provenientes da View), atualizando o Model e, por fim, refletindo essas mudanças na View.
+
+[NOTE]
+====
+Embora clássico, o MVC, na prática, em aplicativos Android, pode levar ao que chamamos de "God Activity" (Activity ou Fragment sobrecarregado com responsabilidades, atuando como Controller e, muitas vezes, manipulando direta ou indiretamente as camadas do Model e da View).
+====
+
+=== Vantagens
+1. Simplicidade conceitual.
+2. Separação inicial de responsabilidades.
+3. Adequado para pequenos aplicativos e prototipagem rápida.
+
+=== Desvantagens
+1. Tendência a um controlador sobrecarregado no Android (e.g., atividades e fragmentos acumulando responsabilidades).
+2. Dificuldade em escalar e manter para projetos maiores.
+
+=== Exemplo Prático de MVC
+
+Imagine um app de lista de tarefas simples:
+
+- **Model:** Uma classe `Task` que gerencia os dados da tarefa (ex: título, descrição e se está concluída).
+- **View:** O layout XML que exibe as tarefas em uma lista (ex: RecyclerView).
+- **Controller:** Uma Activity ou Fragment que recebe ações do usuário (como pressionar o botão de adicionar tarefa) e atualiza a lista.
+
+.Exemplo: MVC (Model-View-Controller) 
+[source,kotlin]
+----
+// Model
+data class Task(val title: String, var isCompleted: Boolean = false)
+
+// Controller (Activity atua como Controller e View)
+class MainActivity : AppCompatActivity() {
+    private val taskList = mutableListOf<Task>()
+    private lateinit var adapter: TaskAdapter
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+
+        adapter = TaskAdapter(taskList)
+        recyclerView.adapter = adapter
+
+        addTaskButton.setOnClickListener {
+            taskList.add(Task("Nova Tarefa"))
+            adapter.notifyDataSetChanged()
+        }
+    }
+}
+
+// View (RecyclerView Adapter)
+class TaskAdapter(private val tasks: List<Task>) : RecyclerView.Adapter<TaskAdapter.TaskViewHolder>() {
+
+    class TaskViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TaskViewHolder {
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_task, parent, false)
+        return TaskViewHolder(view)
+    }
+
+    override fun onBindViewHolder(holder: TaskViewHolder, position: Int) {
+        // Exibe os dados da tarefa
+        val task = tasks[position]
+        holder.itemView.taskTitle.text = task.title
+    }
+
+    override fun get
+----
+
+== MVP (Model-View-Presenter)
+
+O MVP é uma evolução do MVC que busca desacoplar ainda mais os componentes da aplicação, tornando o código mais modular e testável. Ele substitui o **Controller** pelo **Presenter**, colocando um foco maior na separação de responsabilidades.
+
+- **Model:** A lógica de negócio e os dados permanecem no Model (sem mudanças em relação ao MVC).
+- **View:** Ela é uma interface passiva - no Android, geralmente a Activity ou o Fragment - e apenas exibe informações e delega os eventos ao **Presenter**. Idealmente, não contém lógica de negócio.
+- **Presenter:** Fica responsável por lidar com as ações da View, processar os dados através do Model, e enviar os resultados de volta para a View.
+
+=== Vantagens
+1. Maior separação de preocupações, facilitando testes unitários.
+2. Reduz a quantidade de lógica presente em Activities e Fragments.
+3. Melhor suporte para modularidade.
+
+=== Desvantagens
+1. Pode demandar maior esforço inicial de implementação.
+2. Em projetos muito grandes, os Presenters podem tornar-se complexos.
+
+=== Exemplo Prático de MVP
+Imagine o mesmo app de lista de tarefas. A diferença seria delegar a lógica para o Presenter:
+
+.Exemplo: MVP (Model-View-Presenter)
+[source,kotlin]
+----
+// Model
+data class Task(val title: String, var isCompleted: Boolean = false)
+
+// View Interface
+interface TaskView {
+    fun showTasks(tasks: List<Task>)
+    fun showTaskAddedMessage(message: String)
+}
+
+// Presenter
+class TaskPresenter(private val view: TaskView) {
+    private val tasks = mutableListOf<Task>()
+
+    fun loadTasks() {
+        view.showTasks(tasks)
+    }
+
+    fun addTask(title: String) {
+        tasks.add(Task(title))
+        view.showTaskAddedMessage("Tarefa adicionada com sucesso")
+        loadTasks()  // Atualiza a lista
+    }
+}
+
+// Activity como implementação da View
+class TaskActivity : AppCompatActivity(), TaskView {
+    private lateinit var presenter: TaskPresenter
+    private lateinit var adapter: TaskAdapter
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_task)
+
+        presenter = TaskPresenter(this)
+        adapter = TaskAdapter(mutableListOf())
+        recyclerView.adapter = adapter
+
+        presenter.loadTasks()
+
+        addTaskButton.setOnClickListener {
+            presenter.addTask("Nova Tarefa")
+        }
+    }
+
+    override fun showTasks(tasks: List<Task>) {
+        adapter.updateTasks(tasks)
+    }
+
+    override fun showTaskAddedMessage(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    }
+}
+
+// TaskAdapter atualizado
+class TaskAdapter(private val tasks: MutableList<Task>) : RecyclerView.Adapter<TaskAdapter.TaskViewHolder>() {
+    fun updateTasks(newTasks: List<Task>) {
+        tasks.clear()
+        tasks.addAll(newTasks)
+        notifyDataSetChanged()
+    }
+    // Resto do código do Adapter semelhante ao exemplo anterior
+}
+----
+
+== MVVM (Model-View-ViewModel)
+
+O MVVM é largamente utilizado no Android devido à integração com bibliotecas modernas, como LiveData, ViewModel e DataBinding (via Android Jetpack). Esse padrão promove o uso de "bindings" entre a View e o ViewModel para eliminar a necessidade de _boilerplate code_ na configuração de eventos e dados.
+
+- **Model:** Responsável pelos dados e lógica de negócio.
+- **ViewModel:** Age como um intermediário que fornece os dados da View e responde a eventos. Ele utiliza dados observáveis (ex: LiveData ou StateFlow).
+- **View:** Observa os dados expostos pelo ViewModel e reage a mudanças automaticamente.
+
+=== Vantagens
+
+1. Suporte nativo das ferramentas Android (ViewModel, LiveData, DataBinding, etc.).
+2. Fluxo mais natural de dados entre View e Model.
+3. Ótimo para lidar com mudanças frequentes no estado da UI.
+
+=== Desvantagens
+
+1. Requer aprender conceitos como Data Binding e LiveData/StateFlow.
+2. Pode ser overkill para projetos muito simples.
+
+=== Exemplo Prático de MVVM
+
+No app de lista de tarefas:
+
+.Exemplo: MVVM (Model-View-ViewModel)
+[source,kotlin]
+----
+// Model
+data class Task(val title: String, var isCompleted: Boolean = false)
+
+// ViewModel
+class TaskViewModel : ViewModel() {
+    private val _tasks = MutableLiveData<List<Task>>()
+    val tasks: LiveData<List<Task>> = _tasks
+
+    init {
+        _tasks.value = mutableListOf()
+    }
+
+    fun addTask(title: String) {
+        val currentTasks = _tasks.value?.toMutableList() ?: mutableListOf()
+        currentTasks.add(Task(title))
+        _tasks.value = currentTasks
+    }
+}
+
+// Activity
+class TaskActivity : AppCompatActivity() {
+    private lateinit var viewModel: TaskViewModel
+    private lateinit var adapter: TaskAdapter
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_task)
+
+        viewModel = ViewModelProvider(this).get(TaskViewModel::class.java)
+        adapter = TaskAdapter(mutableListOf())
+        recyclerView.adapter = adapter
+
+        viewModel.tasks.observe(this) { tasks ->
+            adapter.updateTasks(tasks)
+        }
+
+        addTaskButton.setOnClickListener {
+            viewModel.addTask("Nova Tarefa")
+        }
+    }
+}
+----
+== MVI (Model-View-Intent)
+O MVI utiliza um fluxo unidirecional de dados, permitindo maior previsibilidade e controle de estado.
+
+- **Model:** Define o estado imutável do aplicativo.
+- **View:** Renderiza o estado do Model e emite Intents (ações do usuário).
+- **Intent:** Representa eventos ou intenções do usuário processados por um _Reducer_ ou _ViewModel_.
+
+=== Vantagens
+
+1. Fluxo unidirecional de dados proporciona maior previsibilidade e controle de estado.
+2. Facilita o rastreamento de eventos e ações do usuário, garantindo um estado consistente.
+3. Ideal para aplicativos com requisitos de interface altamente interativos ou mudanças frequentes no estado.
+4. Reduz o acoplamento entre a View e a lógica de negócios.
+
+=== Desvantagens
+
+1. Pode ser mais complexo de implementar e entender em comparação com padrões como MVC ou MVP.
+2. Requer o gerenciamento explícito do estado e das Intents, aumentando a quantidade de código.
+3. Nem sempre é necessário para aplicativos simples, onde outras arquiteturas podem ser mais leves e diretas.
+
+=== Exemplo Prático de MVI
+
+[source,kotlin]
+----
+// Model
+data class TaskState(
+    val tasks: List<Task> = emptyList(),
+    val message: String? = null
+)
+
+sealed class TaskIntent {
+    object LoadTasks : TaskIntent()
+    data class AddTask(val title: String) : TaskIntent()
+}
+
+// ViewModel (Processa Intents e atualiza o estado)
+class TaskViewModel : ViewModel() {
+    private val _state = MutableStateFlow(TaskState())
+    val state: StateFlow<TaskState> = _state
+
+    fun process(intent: TaskIntent) {
+        when (intent) {
+            is TaskIntent.LoadTasks -> {
+                _state.value = TaskState(tasks = _state.value.tasks)
+            }
+            is TaskIntent.AddTask -> {
+                val updatedTasks = _state.value.tasks.toMutableList()
+                updatedTasks.add(Task(intent.title))
+                _state.value = TaskState(tasks = updatedTasks, message = "Tarefa adicionada")
+            }
+        }
+    }
+}
+
+// Activity
+class TaskActivity : AppCompatActivity() {
+    private lateinit var viewModel: TaskViewModel
+    private lateinit var adapter: TaskAdapter
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_task)
+
+        adapter = TaskAdapter(mutableListOf())
+        recyclerView.adapter = adapter
+        viewModel = ViewModelProvider(this).get(TaskViewModel::class.java)
+
+        lifecycleScope.launchWhenStarted {
+            viewModel.state.collect { state ->
+                adapter.updateTasks(state.tasks)
+                state.message?.let { 
+                    Toast.makeText(this@TaskActivity, it, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+
+        addTaskButton.setOnClickListener {
+            viewModel.process(TaskIntent.AddTask("Nova Tarefa"))
+        }
+    }
+}
+----
+
+== Conclusão
+Cada padrão arquitetural tem suas vantagens e desvantagens. Para projetos mais simples, o **MVC** pode ser suficiente, enquanto **MVP** e **MVVM** facilitam a modularidade e os testes. O **MVI** é uma solução moderna para gerenciamento de estado, sendo mais adequado para aplicativos com fluxos complexos e mudanças frequentes na interface.
+

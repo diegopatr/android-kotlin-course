@@ -3,6 +3,9 @@
 * xref:03-intro-dev-android.adoc[3. Introdução ao Desenvolvimento de Apps Android com Jetpack Compose]
 * xref:04-android-studio.adoc[4. Utilizando o Android Studio]
 * xref:05-layouts.adoc[5. Fundamentos de Layouts no Jetpack Compose]
+* xref:06-arquitetura.adoc[6. Arquitetura de Apps]
+* xref:07-navegacao.adoc[7. Navegação no Jetpack Compose]
+* xref:08-persistencia.adoc[8. Persistência com Jetpack Compose]
 
 * Recursos Adicionais
 ** xref:99-instalacao-android-studio.adoc[Instalação do Android Studio]
