@@ -1,0 +1,780 @@
+= Firebase
+
+Este capítulo detalha o processo de integração da plataforma Firebase em um projeto Android que utiliza Jetpack Compose para a construção da interface de usuário. Abordaremos a configuração inicial do Firebase, a implementação da persistência de dados com Cloud Firestore, a gestão de autenticação de usuários com Firebase Authentication, e a arquitetura recomendada utilizando ViewModel e Repositórios para uma aplicação robusta e escalável.
+
+== 1. Configuração Inicial do Ambiente Firebase
+
+A primeira etapa consiste na configuração do projeto Firebase e na sua vinculação com a aplicação Android. Este processo estabelece a comunicação entre o aplicativo e os serviços backend fornecidos pelo Firebase.
+
+=== 1.1. Adição do Firebase ao Projeto Android via Console
+
+1.  Navegue até o https://console.firebase.google.com/[Firebase Console^] utilizando suas credenciais Google.
+2.  Inicie a criação de um novo projeto Firebase, fornecendo um nome apropriado e seguindo as instruções apresentadas.
+3.  Dentro do projeto recém-criado, selecione a opção para adicionar um aplicativo Android.
+4.  Informe o nome do pacote (Package Name / Application ID) da sua aplicação. Este identificador único pode ser encontrado no arquivo `build.gradle` (Module: app), por exemplo: `br.com.exemplo.todo`. É crucial que este nome corresponda exatamente ao do seu projeto Android.
+5.  Prossiga com o registro do aplicativo. Faça o download do arquivo de configuração `google-services.json`. Este arquivo contém as chaves e identificadores necessários para que o SDK do Firebase conecte-se ao seu projeto Firebase.
+6.  Posicione o arquivo `google-services.json` baixado no diretório raiz do módulo `app` do seu projeto Android (`app/google-services.json`).
+
+=== 1.2. Configuração das Dependências Gradle
+
+Para utilizar os SDKs do Firebase, é necessário declarar as dependências apropriadas nos arquivos de build do Gradle.
+
+1.  *Arquivo `build.gradle` (Nível de Projeto)*: Adicione o plugin do Google Services como uma dependência de classpath. Este plugin é responsável por processar o arquivo `google-services.json`.
++
+[source,kotlin,subs="verbatim,attributes"]
+----
+plugins {
+    alias(libs.plugins.android.application) apply false
+    alias(libs.plugins.kotlin.android) apply false
+    alias(libs.plugins.kotlin.compose) apply false
+
+    id("com.google.gms.google-services") version "4.4.2" apply false <.>
+}
+----
+<1> Verifique sempre a https://developers.google.com/android/guides/google-services-plugin#adding_the_plugin[versão mais recente^] do plugin `google-services`.
+
+2.  *Arquivo `build.gradle` (Nível de Módulo: app)*: Aplique o plugin do Google Services e adicione as dependências específicas para os serviços Firebase desejados (Authentication e Firestore).
++
+[source,kotlin,subs="verbatim,attributes"]
+----
+plugins {
+    // ... outros plugins
+    id("com.google.gms.google-services")
+}
+
+android {
+    // ... configurações do Android
+}
+
+dependencies {
+    implementation(platform("com.google.firebase:firebase-bom:33.11.0"))
+    implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-firestore")
+    // ... outras dependências
+}
+----
+
+
+3.  Após modificar os arquivos Gradle, sincronize o seu projeto com as configurações do Gradle clicando em "Sync Now" ou através da opção correspondente no Android Studio.
+
+=== 1.3. Habilitação dos Serviços no Firebase Console
+
+Antes de utilizar os serviços no código, é necessário habilitá-los e configurá-los no Firebase Console.
+
+1.  *Cloud Firestore*:
+*   No menu lateral do Firebase Console, navegue até a seção "Criação" > "Firestore Database".
+*   Clique em "Criar banco de dados".
+*   Opte por iniciar no **modo de produção** ou **modo de testes**. Para desenvolvimento inicial e prototipagem, o **modo de testes** permite leituras e escritas irrestritas por um período limitado, facilitando os testes iniciais. _Importante: Para produção, é fundamental configurar regras de segurança (`Security Rules`) robustas para proteger seus dados._
+*   Selecione a localização do seu servidor Firestore. A escolha da localização pode impactar a latência e os custos.
+*   Aguarde o provisionamento do banco de dados.
+
+2.  *Firebase Authentication*:
+*   Navegue até a seção "Build" > "Authentication".
+*   Clique em "Get Started" ou "Começar".
+*   Acesse a aba "Sign-in method" (Método de login).
+*   Habilite os provedores de autenticação desejados. Para este tutorial, habilite o provedor "E-mail/senha". Outros provedores como Google, Facebook, etc., podem ser habilitados conforme a necessidade.
+
+== 2. Estruturação de Modelos de Dados e Estados da Aplicação
+
+A definição clara de modelos de dados e classes de estado é fundamental para uma arquitetura organizada e para o gerenciamento eficaz do estado da UI, especialmente em um paradigma declarativo como o Jetpack Compose.
+
+*   **`Task.kt`**: Uma data class Kotlin representando a estrutura de uma tarefa a ser armazenada no Firestore. É crucial que esta classe possua um construtor vazio (ou que todos os parâmetros tenham valores padrão) e propriedades `var` ou `val` públicas para que o Firestore possa serializar/desserializar objetos automaticamente. Recomenda-se incluir um campo `id` (String) para o identificador único do documento Firestore.
+
+[source,kotlin]
+----
+package br.com.exemplo.todo.data.model
+
+import com.google.firebase.firestore.DocumentId
+
+data class Task(
+    @DocumentId // Anotação para mapear automaticamente o ID do documento
+    val id: String? = null,
+    val description: String = "",
+    val isCompleted: Boolean = false,
+    // val userId: String? = null // Opcional: para vincular tarefas a usuários
+    // val timestamp: com.google.firebase.Timestamp? = null // Opcional: para ordenação/rastreamento
+)
+----
+
+*   **`LoginState.kt`** e **`ProfileState.kt`**: Classes (frequentemente `data class` ou `sealed class`) que encapsulam o estado relacionado à autenticação e ao perfil do usuário. Elas podem conter informações como o usuário logado (`FirebaseUser`), indicadores de carregamento (`isLoading`), ou mensagens de erro (`error`).
+
+[source,kotlin]
+----
+package br.com.exemplo.todo.ui.state
+
+import com.google.firebase.auth.FirebaseUser
+
+data class LoginState(
+    val isLoading: Boolean = false,
+    val error: String? = null,
+    val loginSuccess: Boolean = false
+)
+
+data class ProfileState(
+    val user: FirebaseUser? = null,
+    val isLoading: Boolean = false,
+    val error: String? = null
+)
+----
+Esses modelos servirão como contratos de dados entre as diferentes camadas da aplicação (Repositório, ViewModel, UI).
+
+== 3. Implementação da Camada de Repositório para Gerenciamento de Tarefas (Firestore)
+
+O Padrão Repositório atua como uma camada de abstração sobre as fontes de dados (neste caso, o Firestore). Ele centraliza a lógica de acesso aos dados, desacoplando a lógica de negócios das implementações específicas de persistência.
+
+O arquivo `TaskFirebaseRepository.kt` será responsável pelas operações CRUD (Create, Read, Update, Delete) sobre a coleção de tarefas no Firestore e pela exposição dos dados de forma reativa.
+
+=== 3.1. Configuração Inicial e Referência da Coleção
+
+[source,kotlin]
+----
+package br.com.exemplo.todo.data.repository
+
+import android.util.Log
+import br.com.exemplo.todo.data.model.Task
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+
+class TaskFirebaseRepository(
+    // Injeção de dependência (opcional, mas recomendado para testabilidade)
+    private val firestore: FirebaseFirestore = Firebase.firestore,
+    // Escopo para observação do StateFlow
+    private val externalScope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+) {
+    private val TAG = "TaskFirebaseRepository"
+    // Referência à coleção "tasks" no Firestore
+    private val taskCollection = firestore.collection("tasks")
+
+    // ... (Implementação das funções CRUD e Flow)
+}
+----
+
+=== 3.2. Observabilidade com `StateFlow`
+
+Para fornecer atualizações em tempo real à camada de ViewModel e, consequentemente, à UI, utilizaremos `Flow`, especificamente `StateFlow`, que é ideal para representar estados observáveis.
+
+[source,kotlin]
+----
+// Dentro da classe TaskFirebaseRepository
+
+// Expõe um Flow que emite a lista de tarefas sempre que houver alterações no Firestore
+val allTasksFlow: Flow<List<Task>> = callbackFlow {
+    // Registra um listener para atualizações em tempo real na coleção
+    val listenerRegistration = taskCollection
+        // .whereEqualTo("userId", FirebaseAuth.getInstance().currentUser?.uid) // <1>
+        // .orderBy("timestamp", Query.Direction.DESCENDING) // <2>
+        .addSnapshotListener { snapshots, error ->
+            if (error != null) {
+                Log.w(TAG, "Listen failed.", error)
+                close(error) // Fecha o Flow com erro
+                return@addSnapshotListener
+            }
+
+            if (snapshots != null) {
+                val tasks = snapshots.toObjects(Task::class.java)
+                Log.d(TAG, "Novas tarefas recebidas: ${tasks.size}")
+                trySend(tasks).isSuccess // Envia a nova lista para o Flow
+            }
+        }
+
+    // Define o que fazer quando o Flow é cancelado (o coletor para de observar)
+    awaitClose {
+        Log.d(TAG, "Cancelando o listener do Firestore.")
+        listenerRegistration.remove() // Remove o listener para evitar leaks
+    }
+}
+
+// Converte o Flow em StateFlow para manter o último estado e otimizar a coleta
+val allTasks: StateFlow<List<Task>> = allTasksFlow
+    .stateIn(
+        scope = externalScope, // Escopo de corrotina para manter o StateFlow ativo
+        started = kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000), // <3>
+        initialValue = emptyList() // Valor inicial enquanto os dados não chegam
+    )
+----
+<1> _Opcional_: Filtre as tarefas pelo ID do usuário logado para segurança e personalização. Requer que `userId` seja salvo no documento `Task`.
+<2> _Opcional_: Ordene as tarefas, por exemplo, pela data de criação. Requer um campo `timestamp`.
+<3> `SharingStarted.WhileSubscribed(5000)`: Mantém o Flow subjacente ativo por 5 segundos após o último coletor parar, otimizando para reconfigurações de tela.
+
+=== 3.3. Operações CRUD (Exemplos)
+
+As operações de escrita (inserir, atualizar, deletar) são tipicamente implementadas como `suspend fun` para serem chamadas dentro de coroutines.
+
+1.  *Inserir/Atualizar Tarefa*:
++
+[source,kotlin]
+----
+// Dentro da classe TaskFirebaseRepository
+
+/**
+ * Insere uma nova tarefa ou atualiza uma existente no Firestore.
+ * Se task.id for nulo, um novo documento será criado.
+ * Se task.id existir, o documento correspondente será sobrescrito.
+ * @param task A tarefa a ser inserida ou atualizada.
+ * @throws Exception Em caso de falha na comunicação com o Firestore.
+ */
+suspend fun insertOrUpdateTask(task: Task) {
+    try {
+        // Se o ID não existe, gera um novo ID e o atribui à tarefa
+        val documentId = task.id ?: taskCollection.document().id
+        val taskWithId = task.copy(id = documentId) // Garante que a tarefa tenha um ID
+
+        // Utiliza 'set' para inserir ou sobrescrever o documento inteiro
+        taskCollection.document(documentId).set(taskWithId).await() // <1>
+        Log.d(TAG, "Tarefa inserida/atualizada com ID: $documentId")
+    } catch (e: Exception) {
+        Log.e(TAG, "Erro ao inserir/atualizar tarefa", e)
+        throw e // Propaga a exceção para tratamento na camada superior (ViewModel)
+    }
+}
+----
+<1> `.await()`: Extensão do KTX que suspende a coroutine até a operação do Firebase ser concluída.
+
+2.  *Excluir Tarefa*:
++
+[source,kotlin]
+----
+// Dentro da classe TaskFirebaseRepository
+
+/**
+ * Exclui uma tarefa do Firestore com base no seu ID.
+ * @param task A tarefa a ser excluída (apenas o ID é necessário).
+ * @throws Exception Em caso de falha ou se o ID for nulo.
+ */
+suspend fun deleteTask(task: Task) {
+    if (task.id == null) {
+        Log.w(TAG, "Tentativa de excluir tarefa com ID nulo.")
+        throw IllegalArgumentException("ID da tarefa não pode ser nulo para exclusão.")
+    }
+    try {
+        taskCollection.document(task.id).delete().await()
+        Log.d(TAG, "Tarefa excluída com ID: ${task.id}")
+    } catch (e: Exception) {
+        Log.e(TAG, "Erro ao excluir tarefa com ID: ${task.id}", e)
+        throw e
+    }
+}
+----
+
+== 4. Implementação da Camada de Autenticação
+
+Similarmente ao Firestore, criaremos um repositório para encapsular a lógica de interação com o Firebase Authentication.
+
+=== 4.1. `AuthRepository.kt`
+
+[source,kotlin]
+----
+package br.com.exemplo.todo.data.repository
+
+import android.util.Log
+import br.com.exemplo.todo.ui.state.ProfileState
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+
+class AuthRepository(
+    private val firebaseAuth: FirebaseAuth = Firebase.auth // Instância do FirebaseAuth
+) {
+    private val TAG = "AuthRepository"
+
+    // StateFlow para observar o estado atual do usuário (logado ou não)
+    private val _currentUserState = MutableStateFlow<ProfileState>(ProfileState(isLoading = true)) // <1>
+    val currentUserState: StateFlow<ProfileState> = _currentUserState.asStateFlow()
+
+    init {
+        // Observa mudanças no estado de autenticação do Firebase
+        firebaseAuth.addAuthStateListener { auth ->
+            val user = auth.currentUser
+            _currentUserState.value = ProfileState(user = user, isLoading = false) // <2>
+            Log.d(TAG, "Estado de autenticação alterado. Usuário: ${user?.uid}")
+        }
+        // Carrega o estado inicial
+        _currentUserState.value = ProfileState(user = firebaseAuth.currentUser, isLoading = false)
+    }
+
+    /**
+     * Realiza o login com e-mail e senha.
+     * @param email O e-mail do usuário.
+     * @param password A senha do usuário.
+     * @return ProfileState indicando sucesso (com usuário) ou falha (com erro).
+     */
+    suspend fun login(email: String, password: String): ProfileState {
+        return try {
+            Log.d(TAG, "Tentativa de login para: $email")
+            val authResult = firebaseAuth.signInWithEmailAndPassword(email, password).await()
+            Log.d(TAG, "Login bem-sucedido para: ${authResult.user?.uid}")
+            ProfileState(user = authResult.user) // Retorna estado de sucesso
+        } catch (e: Exception) {
+            Log.e(TAG, "Erro durante o login", e)
+            ProfileState(error = e.message ?: "Erro desconhecido durante o login") // Retorna estado de erro
+        }
+    }
+
+    /**
+     * Registra um novo usuário com e-mail e senha.
+     * @param email O e-mail do novo usuário.
+     * @param password A senha do novo usuário.
+     * @return ProfileState indicando sucesso (com usuário) ou falha (com erro).
+     */
+    suspend fun register(email: String, password: String): ProfileState {
+         return try {
+            Log.d(TAG, "Tentativa de registro para: $email")
+            val authResult = firebaseAuth.createUserWithEmailAndPassword(email, password).await()
+            Log.d(TAG, "Registro bem-sucedido para: ${authResult.user?.uid}")
+            ProfileState(user = authResult.user)
+        } catch (e: Exception) {
+            Log.e(TAG, "Erro durante o registro", e)
+            ProfileState(error = e.message ?: "Erro desconhecido durante o registro")
+        }
+    }
+
+    /**
+     * Realiza o logout do usuário atual.
+     */
+    fun logout() {
+        Log.d(TAG, "Realizando logout.")
+        firebaseAuth.signOut()
+        // O AuthStateListener atualizará o _currentUserState automaticamente.
+    }
+
+    /**
+     * Retorna o usuário atualmente logado, se houver.
+     * @return FirebaseUser? O usuário logado ou null.
+     */
+    fun getCurrentUser(): com.google.firebase.auth.FirebaseUser? {
+        return firebaseAuth.currentUser
+    }
+}
+----
+<1> Inicia com `isLoading = true` para indicar que o estado inicial ainda está sendo determinado.
+<2> Atualiza o `StateFlow` sempre que o estado de autenticação do Firebase muda (login, logout).
+
+== 5. Orquestração da Lógica de Negócios com ViewModel
+
+O `ViewModel` atua como um intermediário entre a camada de Repositório e a UI (Jetpack Compose). Ele expõe os dados dos repositórios (frequentemente como `StateFlow`) para a UI observar e fornece funções que a UI pode chamar para executar ações (como adicionar uma tarefa ou fazer login), delegando a lógica de negócios e acesso a dados para os repositórios. O `ViewModel` é consciente do ciclo de vida, sobrevivendo a mudanças de configuração.
+
+=== 5.1. `TaskViewModel.kt`
+
+[source,kotlin]
+----
+package br.com.exemplo.todo.ui.viewmodel
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import br.com.exemplo.todo.data.model.Task
+import br.com.exemplo.todo.data.repository.TaskFirebaseRepository
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import android.util.Log
+
+class TaskViewModel(
+    // Injeção de dependência do repositório (recomendado)
+    private val repository: TaskFirebaseRepository = TaskFirebaseRepository()
+) : ViewModel() {
+
+    private val TAG = "TaskViewModel"
+
+    // Expõe o StateFlow do repositório diretamente para a UI
+    val tasks: StateFlow<List<Task>> = repository.allTasks
+
+    // StateFlow para feedback de operações (opcional)
+    private val _operationStatus = MutableStateFlow<String?>(null)
+    val operationStatus: StateFlow<String?> = _operationStatus.asStateFlow()
+
+    /**
+     * Adiciona ou atualiza uma tarefa utilizando o repositório.
+     * Lança uma coroutine no escopo do ViewModel.
+     * @param task A tarefa a ser adicionada/atualizada.
+     */
+    fun addOrUpdateTask(task: Task) {
+        viewModelScope.launch { // <1>
+            try {
+                Log.d(TAG, "Tentando adicionar/atualizar tarefa: ${task.description}")
+                repository.insertOrUpdateTask(task)
+                _operationStatus.value = "Tarefa '${task.description}' salva com sucesso." // Feedback
+                Log.d(TAG, "Tarefa adicionada/atualizada com sucesso.")
+            } catch (e: Exception) {
+                Log.e(TAG, "Erro ao adicionar/atualizar tarefa", e)
+                _operationStatus.value = "Erro ao salvar tarefa: ${e.message}" // Feedback de erro
+                // Tratar o erro (ex: exibir mensagem para o usuário)
+            }
+        }
+    }
+
+    /**
+     * Exclui uma tarefa utilizando o repositório.
+     * Lança uma coroutine no escopo do ViewModel.
+     * @param task A tarefa a ser excluída.
+     */
+    fun deleteTask(task: Task) {
+        viewModelScope.launch {
+            try {
+                Log.d(TAG, "Tentando excluir tarefa ID: ${task.id}")
+                repository.deleteTask(task)
+                 _operationStatus.value = "Tarefa '${task.description}' excluída."
+                Log.d(TAG, "Tarefa excluída com sucesso.")
+            } catch (e: Exception) {
+                Log.e(TAG, "Erro ao excluir tarefa ID: ${task.id}", e)
+                 _operationStatus.value = "Erro ao excluir tarefa: ${e.message}"
+                // Tratar o erro
+            }
+        }
+    }
+
+    // Função para limpar o status da operação após exibição (opcional)
+    fun clearOperationStatus() {
+        _operationStatus.value = null
+    }
+
+    override fun onCleared() { // <2>
+        super.onCleared()
+        Log.d(TAG, "TaskViewModel onCleared")
+        // Limpeza, se necessário (coroutines lançadas com viewModelScope são canceladas automaticamente)
+    }
+}
+----
+<1> `viewModelScope`: Um `CoroutineScope` vinculado ao ciclo de vida do ViewModel. Coroutines lançadas neste escopo são automaticamente canceladas quando o ViewModel é destruído.
+<2> `onCleared()`: Chamado quando o ViewModel está prestes a ser destruído. Útil para liberar recursos que não são gerenciados pelo `viewModelScope`.
+
+=== 5.2. `AuthViewModel.kt` (Exemplo similar para Autenticação)
+
+Um `AuthViewModel` seguiria um padrão semelhante, expondo o `currentUserState` do `AuthRepository` e fornecendo funções como `login()`, `register()`, e `logout()`, que chamariam os métodos correspondentes no repositório dentro do `viewModelScope`.
+
+[source, kotlin]
+----
+package br.com.exemplo.todo.ui.viewmodel
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import br.com.exemplo.todo.data.repository.AuthFirebaseRepository
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import android.util.Log
+
+class AuthViewModel(
+    // Injeção de dependência do repositório (recomendado)
+    private val repository: AuthFirebaseRepository = AuthFirebaseRepository()
+) : ViewModel() {
+
+    private val TAG = "AuthViewModel"
+
+    // Exposição do estado do usuário autenticado
+    private val _currentUser = MutableStateFlow<String?>(null)
+    val currentUser: StateFlow<String?> = _currentUser.asStateFlow()
+
+    // StateFlow para feedback de operações de autenticação
+    private val _operationStatus = MutableStateFlow<String?>(null)
+    val operationStatus: StateFlow<String?> = _operationStatus.asStateFlow()
+
+    init {
+        // Inicializa o estado com o usuário atual (se houver)
+        _currentUser.value = repository.getCurrentUser()?.email
+    }
+
+    /**
+     * Faz o login de um usuário.
+     * @param email O e-mail do usuário.
+     * @param password A senha do usuário.
+     */
+    fun login(email: String, password: String) {
+        viewModelScope.launch {
+            try {
+                Log.d(TAG, "Tentando login para o usuário: $email")
+                repository.login(email, password)
+                _currentUser.value = repository.getCurrentUser()?.email
+                _operationStatus.value = "Login bem-sucedido para o usuário: $email."
+                Log.d(TAG, "Login bem-sucedido.")
+            } catch (e: Exception) {
+                Log.e(TAG, "Erro ao fazer login", e)
+                _operationStatus.value = "Erro no login: ${e.message}"
+            }
+        }
+    }
+
+    /**
+     * Registra um novo usuário.
+     * @param email O e-mail do usuário.
+     * @param password A senha do usuário.
+     */
+    fun register(email: String, password: String) {
+        viewModelScope.launch {
+            try {
+                Log.d(TAG, "Tentando registrar usuário: $email")
+                repository.register(email, password)
+                _currentUser.value = repository.getCurrentUser()?.email
+                _operationStatus.value = "Registro bem-sucedido para o usuário: $email."
+                Log.d(TAG, "Registro bem-sucedido.")
+            } catch (e: Exception) {
+                Log.e(TAG, "Erro ao fazer registro", e)
+                _operationStatus.value = "Erro no registro: ${e.message}"
+            }
+        }
+    }
+
+    /**
+     * Faz logout do usuário atual.
+     */
+    fun logout() {
+        viewModelScope.launch {
+            try {
+                Log.d(TAG, "Tentando realizar logout")
+                repository.logout()
+                _currentUser.value = null
+                _operationStatus.value = "Logout realizado com sucesso."
+                Log.d(TAG, "Logout bem-sucedido.")
+            } catch (e: Exception) {
+                Log.e(TAG, "Erro ao fazer logout", e)
+                _operationStatus.value = "Erro no logout: ${e.message}"
+            }
+        }
+    }
+
+    // Função para limpar o status da operação após exibição (opcional)
+    fun clearOperationStatus() {
+        _operationStatus.value = null
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        Log.d(TAG, "AuthViewModel onCleared")
+    }
+}
+----
+
+
+== 6. Construção da Interface de Usuário com Jetpack Compose
+
+Jetpack Compose permite construir a UI de forma declarativa, descrevendo como a UI *deve ser* com base no estado atual. A integração com `ViewModel` e `StateFlow` é feita de maneira fluida usando funções como `viewModel()` e `collectAsState()`.
+
+=== 6.1. Exemplo: Tela de Tarefas (`TaskScreen.kt`)
+
+[source,kotlin]
+----
+package br.com.exemplo.todo.ui.screen
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import br.com.exemplo.todo.data.model.Task
+import br.com.exemplo.todo.ui.viewmodel.TaskViewModel
+import kotlinx.coroutines.launch
+
+@OptIn(ExperimentalMaterial3Api::class) // Necessário para alguns componentes Material 3
+@Composable
+fun TaskScreen(
+    taskViewModel: TaskViewModel = viewModel() // <1> Obtém instância do ViewModel
+) {
+    // Coleta o StateFlow de tarefas e o converte em State do Compose <2>
+    val tasks by taskViewModel.tasks.collectAsState()
+    // Coleta o status da operação (opcional)
+    val operationStatus by taskViewModel.operationStatus.collectAsState()
+
+    // Estado local para o campo de texto da nova tarefa
+    var newTaskDescription by remember { mutableStateOf("") }
+    var taskToEdit by remember { mutableStateOf<Task?>(null) } // Para edição
+
+    // Para exibir Snackbar (feedback)
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope() // Escopo para lançar corrotina do Snackbar
+
+    // Efeito para mostrar Snackbar quando operationStatus muda
+    LaunchedEffect(operationStatus) { // <3>
+        operationStatus?.let { status ->
+            scope.launch {
+                snackbarHostState.showSnackbar(
+                    message = status,
+                    duration = SnackbarDuration.Short
+                )
+                taskViewModel.clearOperationStatus() // Limpa o status após mostrar
+            }
+        }
+    }
+
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) }, // <4>
+        topBar = {
+            TopAppBar(title = { Text("Lista de Tarefas Firestore") })
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp)
+        ) {
+            // Seção para adicionar/editar tarefa
+            TaskInputSection(
+                description = newTaskDescription,
+                onDescriptionChange = { newTaskDescription = it },
+                buttonText = if (taskToEdit == null) "Adicionar Tarefa" else "Atualizar Tarefa",
+                onAddTaskClick = {
+                    val task = taskToEdit?.copy(description = newTaskDescription)
+                                ?: Task(description = newTaskDescription)
+                    if (newTaskDescription.isNotBlank()) {
+                        taskViewModel.addOrUpdateTask(task)
+                        newTaskDescription = "" // Limpa o campo
+                        taskToEdit = null // Reseta modo edição
+                    }
+                }
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Lista de tarefas
+            TaskList(
+                tasks = tasks,
+                onEditClick = { task ->
+                    newTaskDescription = task.description
+                    taskToEdit = task
+                },
+                onDeleteClick = { task ->
+                    taskViewModel.deleteTask(task)
+                },
+                 onToggleComplete = { task ->
+                    // Atualiza o estado de conclusão
+                    taskViewModel.addOrUpdateTask(task.copy(isCompleted = !task.isCompleted))
+                 }
+            )
+        }
+    }
+}
+
+@Composable
+fun TaskInputSection(
+    description: String,
+    onDescriptionChange: (String) -> Unit,
+    buttonText: String,
+    onAddTaskClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        OutlinedTextField(
+            value = description,
+            onValueChange = onDescriptionChange,
+            label = { Text("Descrição da Tarefa") },
+            modifier = Modifier.weight(1f),
+            singleLine = true
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Button(onClick = onAddTaskClick) {
+            Text(buttonText)
+        }
+    }
+}
+
+@Composable
+fun TaskList(
+    tasks: List<Task>,
+    onEditClick: (Task) -> Unit,
+    onDeleteClick: (Task) -> Unit,
+    onToggleComplete: (Task) -> Unit
+) {
+    if (tasks.isEmpty()) {
+        Text("Nenhuma tarefa encontrada.")
+    } else {
+        LazyColumn(modifier = Modifier.fillMaxSize()) {
+            items(tasks, key = { task -> task.id ?: task.hashCode() }) { task -> // <5>
+                TaskItem(
+                    task = task,
+                    onEditClick = { onEditClick(task) },
+                    onDeleteClick = { onDeleteClick(task) },
+                    onToggleComplete = { onToggleComplete(task) }
+                )
+                Divider() // Separador entre itens
+            }
+        }
+    }
+}
+
+@Composable
+fun TaskItem(
+    task: Task,
+    onEditClick: () -> Unit,
+    onDeleteClick: () -> Unit,
+    onToggleComplete: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Checkbox(
+            checked = task.isCompleted,
+            onCheckedChange = { onToggleComplete() }
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = task.description,
+            modifier = Modifier.weight(1f),
+            style = if (task.isCompleted) MaterialTheme.typography.bodyLarge.copy(
+                textDecoration = androidx.compose.ui.text.style.TextDecoration.LineThrough,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+            ) else MaterialTheme.typography.bodyLarge
+        )
+        IconButton(onClick = onEditClick) {
+            Icon(imageVector = Icons.Default.Edit, contentDescription = "Editar Tarefa")
+        }
+        IconButton(onClick = onDeleteClick) {
+             Icon(imageVector = Icons.Default.Delete, contentDescription = "Excluir Tarefa", tint = MaterialTheme.colorScheme.error)
+        }
+    }
+}
+----
+<1> `viewModel()`: Função de extensão do Compose que provê a instância correta do `ViewModel`, respeitando o ciclo de vida do Composable e do seu proprietário (Activity/Fragment).
+<2> `collectAsState()`: Coleta valores de um `StateFlow` e os representa como `State<T>` do Compose. Sempre que o `StateFlow` emite um novo valor, o `State` é atualizado, e os Composables que o leem são recompostos automaticamente.
+<3> `LaunchedEffect(key)`: Executa um bloco de código de coroutine quando o Composable entra na composição e sempre que a `key` especificada muda. Ideal para operações assíncronas curtas ou para observar mudanças de estado e disparar ações (como mostrar um Snackbar).
+<4> `Scaffold`, `SnackbarHost`, `TopAppBar`: Componentes do Material Design 3 que fornecem a estrutura básica da tela, suporte a Snackbar e barra de aplicativo.
+<5> `key = { task -> task.id }`: Fornecer uma chave estável e única para cada item na `LazyColumn` ajuda o Compose a otimizar a recomposição, adicionando, removendo ou movendo itens de forma eficiente.
+
+== 7. Execução e Verificação do Sistema Integrado
+
+Com todas as camadas configuradas e implementadas, a aplicação pode ser compilada e executada.
+
+1.  *Pré-requisitos de Verificação*:
+*   Certifique-se de que o arquivo `google-services.json` está corretamente posicionado no diretório `app/`.
+*   Verifique no Firebase Console se os serviços Cloud Firestore (com regras de segurança apropriadas ou em modo de teste) e Firebase Authentication (com o provedor E-mail/Senha habilitado) estão ativos para o seu projeto.
+*   Confirme que as dependências Gradle foram sincronizadas sem erros.
+
+2.  *Compilação e Execução*:
+*   Compile e execute a aplicação Android em um emulador ou dispositivo físico através do Android Studio (Shift + F10 ou botão "Run").
+
+3.  *Teste Funcional*:
+*   Navegue até a tela de login/registro (se implementada). Tente registrar um novo usuário ou fazer login com credenciais existentes (pode ser necessário criar um usuário manualmente no Firebase Console > Authentication inicialmente).
+*   Após a autenticação bem-sucedida, acesse a tela de gerenciamento de tarefas (`TaskScreen`).
+*   Adicione novas tarefas utilizando o campo de texto e o botão "Adicionar". Observe se a tarefa aparece na lista.
+*   Verifique no Firebase Console > Firestore Database se os documentos correspondentes às tarefas foram criados na coleção `tasks`.
+*   Edite ou marque tarefas como concluídas. As alterações devem refletir na UI.
+*   Exclua tarefas. Elas devem desaparecer da lista na UI e os documentos correspondentes devem ser removidos do Firestore.
+*   *Teste em Tempo Real*: Abra a aplicação em dois dispositivos/emuladores (ou a aplicação e o console do Firestore simultaneamente). Modificações feitas em um local (ex: adicionar uma tarefa no app) devem ser refletidas quase instantaneamente no outro, demonstrando a natureza reativa da integração com `StateFlow` e os listeners do Firestore.
+
+== Conclusão
+
+Este capítulo demonstrou as etapas essenciais para integrar o Firebase (Authentication e Firestore) em um projeto Android moderno utilizando Jetpack Compose. A adoção de uma arquitetura baseada em camadas (UI - ViewModel - Repository) promove a separação de responsabilidades, testabilidade e manutenibilidade. A utilização de `StateFlow` nos repositórios e sua coleta com `collectAsState()` na UI Composable permite a construção de interfaces reativas que se atualizam automaticamente em resposta a mudanças nos dados, proporcionando uma experiência de usuário fluida e dinâmica. A combinação do Firebase como backend (BaaS) e Jetpack Compose como toolkit de UI oferece um poderoso conjunto de ferramentas para o desenvolvimento de aplicações Android eficientes e escaláveis. Recomenda-se a exploração adicional das regras de segurança do Firestore e Authentication para aplicações em produção, bem como o aprofundamento em gerenciamento de estado avançado e injeção de dependência.

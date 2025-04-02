@@ -6,7 +6,7 @@
 * xref:06-arquitetura.adoc[6. Arquitetura de Apps]
 * xref:07-navegacao.adoc[7. Navegação no Jetpack Compose]
 * xref:08-persistencia.adoc[8. Persistência com Jetpack Compose]
-
+* xref:09-firebase.adoc[9. Firebase]
 * Recursos Adicionais
 ** xref:99-instalacao-android-studio.adoc[Instalação do Android Studio]
 ** xref:99-instalacao-jetbrains-intellij.adoc[Instalação do JetBrains IntelliJ IDEA]
